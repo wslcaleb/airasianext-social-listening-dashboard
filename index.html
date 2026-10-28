@@ -1,0 +1,1702 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Social Listening &amp; Brand Health Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+    <style>
+      body {
+        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      }
+      .tooltip-box {
+        display: none;
+      }
+      .tooltip-trigger:hover .tooltip-box,
+      .tooltip-trigger:focus-within .tooltip-box {
+        display: block;
+      }
+      /* Executive Light Mode Overrides (.theme-light) — High-Contrast Readability */
+      .theme-light {
+        background-color: #f1f5f9 !important;
+        color: #0f172a !important;
+      }
+      .theme-light .bg-\[\#080B11\] {
+        background-color: #f1f5f9 !important;
+      }
+      .theme-light .bg-\[\#0F1520\],
+      .theme-light .bg-\[\#0B0F17\] {
+        background-color: #ffffff !important;
+        border-color: #cbd5e1 !important;
+        box-shadow: 0 4px 16px -4px rgba(15, 23, 42, 0.08) !important;
+      }
+      .theme-light .from-\[\#131B2E\] {
+        background-image: linear-gradient(to right, #ffffff, #f8fafc, #f1f5f9) !important;
+        border-color: #cbd5e1 !important;
+      }
+      .theme-light .bg-slate-950,
+      .theme-light .bg-slate-950\/95,
+      .theme-light .bg-slate-950\/90,
+      .theme-light .bg-slate-950\/80,
+      .theme-light .bg-slate-950\/70,
+      .theme-light .bg-slate-950\/60 {
+        background-color: #f8fafc !important;
+        border-color: #cbd5e1 !important;
+      }
+      .theme-light .bg-slate-900,
+      .theme-light .bg-slate-900\/95,
+      .theme-light .bg-slate-900\/90,
+      .theme-light .bg-slate-900\/50 {
+        background-color: #f1f5f9 !important;
+        border-color: #cbd5e1 !important;
+      }
+      .theme-light .bg-slate-800 {
+        background-color: #e2e8f0 !important;
+        border-color: #94a3b8 !important;
+      }
+      .theme-light .border-slate-800,
+      .theme-light .border-slate-700 {
+        border-color: #cbd5e1 !important;
+      }
+      .theme-light .divide-slate-800 > :not([hidden]) ~ :not([hidden]) {
+        border-color: #cbd5e1 !important;
+      }
+      .theme-light .text-white,
+      .theme-light .text-slate-100,
+      .theme-light .text-slate-200 {
+        color: #0f172a !important;
+      }
+      .theme-light .text-slate-300 {
+        color: #1e293b !important;
+      }
+      .theme-light .text-slate-400 {
+        color: #475569 !important;
+      }
+      /* Keep white text on solid brand buttons & dark bars in Light Mode */
+      .theme-light .bg-\[\#E11D2B\],
+      .theme-light .bg-\[\#E11D2B\] *,
+      .theme-light .from-\[\#E11D2B\],
+      .theme-light .from-\[\#E11D2B\] *,
+      .theme-light .bg-rose-500,
+      .theme-light .bg-rose-500 *,
+      .theme-light .bg-slate-600,
+      .theme-light .bg-slate-600 * {
+        color: #ffffff !important;
+      }
+      .theme-light .bg-emerald-500,
+      .theme-light .bg-emerald-500 * {
+        color: #022c22 !important;
+      }
+      /* High-contrast semantic text & badge backgrounds in Light Mode */
+      .theme-light .text-emerald-200,
+      .theme-light .text-emerald-300,
+      .theme-light .text-emerald-400 {
+        color: #065f46 !important;
+      }
+      .theme-light .text-rose-200,
+      .theme-light .text-rose-300,
+      .theme-light .text-rose-400 {
+        color: #9f1239 !important;
+      }
+      .theme-light .text-amber-200,
+      .theme-light .text-amber-300,
+      .theme-light .text-amber-400 {
+        color: #92400e !important;
+      }
+      .theme-light .text-sky-200,
+      .theme-light .text-sky-300,
+      .theme-light .text-sky-400 {
+        color: #075985 !important;
+      }
+      .theme-light .bg-\[\#E11D2B\]\/15,
+      .theme-light .bg-\[\#E11D2B\]\/20,
+      .theme-light .bg-rose-500\/15,
+      .theme-light .bg-rose-500\/20 {
+        background-color: #ffe4e6 !important;
+        border-color: #fda4af !important;
+        color: #9f1239 !important;
+      }
+      .theme-light .bg-emerald-500\/15,
+      .theme-light .bg-emerald-500\/20 {
+        background-color: #d1fae5 !important;
+        border-color: #6ee7b7 !important;
+        color: #065f46 !important;
+      }
+      .theme-light .bg-amber-500\/15,
+      .theme-light .bg-amber-500\/20 {
+        background-color: #fef3c7 !important;
+        border-color: #fcd34d !important;
+        color: #92400e !important;
+      }
+      .theme-light .bg-sky-500\/15,
+      .theme-light .bg-sky-500\/20 {
+        background-color: #e0f2fe !important;
+        border-color: #7dd3fc !important;
+        color: #075985 !important;
+      }
+      input[type="date"] {
+        color-scheme: dark;
+      }
+      .theme-light input[type="date"] {
+        color-scheme: light;
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        border-color: #94a3b8 !important;
+      }
+    </style>
+  </head>
+  <body class="theme-light bg-[#080B11] text-slate-100 antialiased selection:bg-[#E11D2B] selection:text-white min-h-screen">
+    <div id="root"></div>
+    <script>
+      (function () {
+        var PLATFORMS = [
+          { id: 'X', short: 'X', name: 'X (Twitter)', color: '#38BDF8' },
+          { id: 'TikTok', short: 'TikTok', name: 'TikTok', color: '#06B6D4' },
+          { id: 'XiaoHongShu', short: 'XHS', name: 'XiaoHongShu (RED)', color: '#FF2442' },
+          { id: 'Instagram', short: 'IG', name: 'Instagram', color: '#E1306C' },
+          { id: 'Facebook', short: 'FB', name: 'Facebook', color: '#3B82F6' },
+          { id: 'Threads', short: 'Threads', name: 'Threads', color: '#A855F7' },
+          { id: 'Reddit', short: 'Reddit', name: 'Reddit', color: '#FF5700' },
+          { id: 'YouTube', short: 'YouTube', name: 'YouTube', color: '#EF4444' },
+          { id: 'LinkedIn', short: 'LinkedIn', name: 'LinkedIn', color: '#0A66C2' }
+        ];
+
+        var ENTITIES = [
+          { id: 'airasia', name: 'AirAsia (Airline)', shortLabel: 'AirAsia (Airline)', pillarCount: 5, accent: '#FF1E27' },
+          { id: 'move', name: 'AirAsia MOVE', shortLabel: 'AirAsia MOVE', pillarCount: 6, accent: '#10B981' },
+          { id: 'santan', name: 'Santan', shortLabel: 'Santan', pillarCount: 4, accent: '#F59E0B' },
+          { id: 'ade', name: 'Asia Digital Engineering (ADE)', shortLabel: 'Asia Digital Engineering (ADE)', pillarCount: 6, accent: '#3B82F6' },
+          { id: 'teleport', name: 'Teleport', shortLabel: 'Teleport', pillarCount: 6, accent: '#8B5CF6' }
+        ];
+
+        var DATE_RANGES = [
+          { id: 'today', label: 'Real-Time / Today', windowText: 'Oct 27, 2026 (Live 24h Window)', priorLabel: 'vs. prior 24h', multiplier: 0.162 },
+          { id: '7d', label: 'Last 7 Days', windowText: 'Oct 21 – Oct 27, 2026 (7 Days)', priorLabel: 'vs. prior 7d period', multiplier: 1.0 },
+          { id: '30d', label: 'Last 30 Days', windowText: 'Sep 28 – Oct 27, 2026 (30 Days)', priorLabel: 'vs. prior 30d period', multiplier: 4.15 }
+        ];
+
+        // Section 2: Dynamic Entity-to-Pillar Mapping Matrices
+        var ENTITY_PILLAR_MATRICES = {
+          airasia: [
+            { code: 'PIL-01', domain: 'Digital Booking & App Experience', keywords: ['app booking', 'payment', 'website check-in', 'promo code', 'boarding pass', 'seat selection'] },
+            { code: 'PIL-02', domain: 'Airport Operations & Ground Handling', keywords: ['check-in counter', 'baggage delay', 'lost luggage', 'terminal queue', 'boarding gate', 'ground staff'] },
+            { code: 'PIL-03', domain: 'Customer Support & Chatbot (AskBo/AVA)', keywords: ['AskBo', 'Ask Bo', 'AVA', 'support agent', 'live chat', 'refund status', 'refund delay', 'call center'] },
+            { code: 'PIL-04', domain: 'Flight Operations & Cabin Crew', keywords: ['flight delay', 'flight cancellation', 'pilot', 'cabin crew', 'stewardess', 'in-flight comfort', 'seat comfort', 'safety'] },
+            { code: 'PIL-05', domain: 'Loyalty, Pricing & Add-ons (Baggage/Meals)', keywords: ['baggage price', 'meal prepay', 'seat upgrade', 'airasia points', 'seat selection cost', 'booking fee', 'ancillary'] }
+          ],
+          move: [
+            { code: 'PIL-01', domain: 'Flights', keywords: ['airasia flights', 'book flight', 'flight search', 'flight change', 'flight schedule', 'seat selection', 'flight voucher', 'travel itinerary'] },
+            { code: 'PIL-02', domain: 'Hotels & Packages', keywords: ['hotel booking', 'hotel stay', 'SNAP deal', 'flight hotel package', 'room confirmation', 'resort reservation', 'check-in date', 'hotel refund'] },
+            { code: 'PIL-03', domain: 'Concerts & Activities', keywords: ['concert tickets', 'experience booking', 'event pass', 'theme park', 'tour booking', 'voucher redemption', 'attraction tickets', 'live show'] },
+            { code: 'PIL-04', domain: 'Rides & Taxis', keywords: ['airasia ride', 'book taxi', 'ride-hailing', 'driver canceled', 'airport transfer', 'ride fare', 'driver location', 'pickup point', 'ride status'] },
+            { code: 'PIL-05', domain: 'Payments & Points', keywords: ['airasia points', 'BigPay', 'payment gateway', 'failed transaction', 'credit card error', 'double charged', 'points redemption', 'refund processing'] },
+            { code: 'PIL-06', domain: 'App Help & Tech Bugs', keywords: ['app crash', 'login error', 'app update', 'glitch', 'loading screen', 'OTP code', 'slow performance', 'technical error', 'white screen'] }
+          ],
+          santan: [
+            { code: 'PIL-01', domain: 'In-Flight Food & Service Quality', keywords: ['inflight food', 'airline meal', 'Pak Nasser', 'nasi lemak', 'pre-book meal', 'cabin food service', 'hot meal', 'cold meal', 'portion size', 'taste', 'menu variety'] },
+            { code: 'PIL-02', domain: 'Retail Product Sales & E-Commerce', keywords: ['Santan retail', 'ready-to-eat', 'freeze-dried', 'Santan coffee', 'coffee capsule', 'online order', 'Shopee', 'Lazada', 'TikTok Shop', 'Santan cafe', 'merchandise', 'promo'] },
+            { code: 'PIL-03', domain: 'Business Partnerships & Company News', keywords: ['Santan partnership', 'B2B catering', 'third-party airline catering', 'franchise', 'outlet launch', 'brand collaboration', 'corporate news', 'Catherine Goh', 'expansion'] },
+            { code: 'PIL-04', domain: 'Brand Trust & Food Safety', keywords: ['halal certification', 'food safety', 'hygiene', 'contamination', 'food poisoning', 'expiry date', 'quality control', 'allergen info', 'fresh ingredients', 'customer trust'] }
+          ],
+          ade: [
+            { code: 'PIL-01', domain: 'Plane Maintenance (MRO)', keywords: ['MRO', 'aircraft maintenance', 'C-check', 'D-check', 'base maintenance', 'hangar', 'airframe', 'fleet maintenance', 'aviation engineering', 'aircraft service'] },
+            { code: 'PIL-02', domain: 'Client Wins & Partners', keywords: ['MRO contract', 'client win', 'airline partnership', 'airline customer', 'maintenance deal', 'B2B agreement', 'service agreement', 'fleet contract'] },
+            { code: 'PIL-03', domain: 'Aviation Tech & Software', keywords: ['RedChain', 'digital logbook', 'maintenance software', 'tech log', 'aviation app', 'digital engineering', 'engineering portal', 'aviation technology'] },
+            { code: 'PIL-04', domain: 'Parts & Supply Chain', keywords: ['spare parts', 'components', 'engine swap', 'parts logistics', 'procurement delay', 'tools inventory', 'aircraft parts', 'supply chain', 'material management'] },
+            { code: 'PIL-05', domain: 'Engineers, Hiring & Safety', keywords: ['hangar safety', 'aircraft engineer', 'hiring', 'recruitment', 'engineering talent', 'safety standard', 'training program', 'aviation technician', 'work safety'] },
+            { code: 'PIL-06', domain: 'Corporate Brand & News', keywords: ['ADE corporate', 'hangar launch', 'CEO news', 'press release', 'media coverage', 'aviation awards', 'company expansion', 'industry news', 'corporate milestone'] }
+          ],
+          teleport: [
+            { code: 'PIL-01', domain: 'Cargo & Freight Operations', keywords: ['cargo space', 'charter flight', 'pallet', 'container', 'heavy freight', 'air cargo', 'commercial belly', 'Teleport cargo', 'general cargo', 'freighter'] },
+            { code: 'PIL-02', domain: 'E-Commerce & Parcel Delivery', keywords: ['Teleport delivery', 'parcel drop', 'door-to-door', 'e-commerce parcel', 'parcel tracking', 'transit status', 'package delay', 'shipping delay', 'sorting center'] },
+            { code: 'PIL-03', domain: 'Corporate Clients & E-Com Merchants', keywords: ['B2B logistics', 'merchant partnership', 'corporate client', 'logistics agreement', 'fulfillment client', 'API integration', 'seller support', 'business shipping'] },
+            { code: 'PIL-04', domain: 'Custom Clearance & Cross-Border Logistics', keywords: ['customs delay', 'warehouse hold', 'clearance customs', 'cross-border', 'duty fee', 'import clearance', 'tax declaration', 'border processing'] },
+            { code: 'PIL-05', domain: 'Fleet, Warehouses & Network Expansion', keywords: ['delivery partner', 'courier rider', 'warehouse expansion', 'sorting hub', 'logistics facility', 'regional network', 'warehouse capacity'] },
+            { code: 'PIL-06', domain: 'Corporate Brand, Leadership & ESG', keywords: ['Teleport corporate', 'Pete Chareonwongsak', 'ESG goals', 'carbon offset', 'leadership news', 'press release', 'logistics award', 'capital raise', 'company milestone'] }
+          ]
+        };
+
+        // Section 1.C: Strict Entity Disambiguation Rules
+        var DISAMBIGUATION_RULES = {
+          airasia: {
+            name: 'AirAsia (Airline)',
+            targets: ['AirAsia', 'Air Asia'],
+            context: ['flight', 'plane', 'airline', 'booking', 'baggage', 'seat', 'delay', 'airport', 'boarding', 'cabin crew', 'AK', 'FD', 'QZ', 'Z2', 'D7'],
+            exclusions: ['crypto airdrop', 'giveaway bot'],
+            summary: 'Targets "AirAsia" or "Air Asia" and strictly requires aviation context (flight, plane, airline, booking, baggage, seat, delay, airport, boarding, cabin crew, AK, FD, QZ, Z2, D7).',
+            blocked: 3420,
+            purity: '99.6%'
+          },
+          move: {
+            name: 'AirAsia MOVE',
+            targets: ['AirAsia MOVE', 'AirAsia Superapp', 'MOVE App'],
+            context: ['app', 'booking', 'hotel', 'ride', 'rewards', 'flight pass', 'check-in', 'OTA'],
+            exclusions: ['move house', 'moving company', 'move on', 'dance move', 'generic move'],
+            summary: 'Targets "AirAsia MOVE", "AirAsia Superapp", "MOVE App" with required app/travel context. MANDATORY EXCLUSION: Excludes generic uses of "move" unless paired with AirAsia or travel/app terms.',
+            blocked: 18950,
+            purity: '99.2%'
+          },
+          santan: {
+            name: 'Santan',
+            targets: ['Santan', 'Santan AirAsia'],
+            context: ['flight food', 'airline meal', 'Pak Nasser', 'nasi lemak', 'inflight catering', 'Santan cafe', 'Santan retail', 'ready-to-eat', 'AirAsia food'],
+            exclusions: ['coconut milk', 'santan kelapa', 'recipe', 'resepi', 'masak lemak', 'grocery'],
+            summary: 'Targets "Santan" and "Santan AirAsia" with inflight/F&B/retail brand context. MANDATORY EXCLUSION: Strictly excludes general culinary, recipe, or grocery posts discussing coconut milk ("santan" in Malay/Indonesian).',
+            blocked: 9840,
+            purity: '99.5%'
+          },
+          ade: {
+            name: 'Asia Digital Engineering (ADE)',
+            targets: ['Asia Digital Engineering', 'ADE'],
+            context: ['aircraft maintenance', 'MRO', 'hangar', 'engineering', 'aviation', 'fleet', 'base maintenance', 'line maintenance', 'RedChain'],
+            exclusions: ['amsterdam dance event', 'lemonade', 'tak ade', 'personal name ade'],
+            summary: 'Targets "Asia Digital Engineering" or "ADE" with aviation MRO context. MANDATORY EXCLUSION: Excludes unrelated acronyms, personal names, or foreign-language words spelled "ade".',
+            blocked: 2610,
+            purity: '99.7%'
+          },
+          teleport: {
+            name: 'Teleport',
+            targets: ['Teleport', 'Teleport AirAsia'],
+            context: ['cargo', 'delivery', 'logistics', 'shipping', 'parcel', 'freight', 'AirAsia cargo', 'courier', 'air freight'],
+            exclusions: ['minecraft', 'roblox', 'rpg', 'sci-fi', 'teleporting', 'teleported'],
+            summary: 'Targets "Teleport" or "Teleport AirAsia" with logistics context. MANDATORY EXCLUSION: Strictly excludes gaming (Minecraft, Roblox, RPGs), sci-fi, and general verb usage ("teleporting", "teleported").',
+            blocked: 6460,
+            purity: '99.3%'
+          }
+        };
+
+        var ENTITY_BASE = {
+          airasia: {
+            briefing: {
+              pill: '🟢 Healthy',
+              execStatus: 'Healthy',
+              tone: 'emerald',
+              b1: 'AirAsia (Airline) tracked 4,227 deduplicated mentions (+5.2% vs. prior period) with a positive Net Sentiment Score of +2.7% (836 Positive vs. 722 Negative).',
+              b2: 'PIL-04 Flight Operations & Cabin Crew generated 210 positive mentions led by viral TikTok & XiaoHongShu videos, while PIL-03 Customer Support & Chatbot (AskBo/AVA) drove 218 negative mentions (28.6% Neg).',
+              b3: 'Deploy direct PNR refund status lookup in PIL-03 AskBo to reduce live-chat wait complaints and amplify PIL-04 cabin crew hospitality videos.'
+            },
+            kpis: { vol: 4227, volTrend: 5.2, pos: 836, posTrend: 2.1, neg: 722, negTrend: -1.4, highReach: 14, views: 1200000, reachTrend: -8.5 },
+            platforms: [
+              { id: 'X', volume: 980, positive: 142, negative: 245 },
+              { id: 'TikTok', volume: 810, positive: 215, negative: 108 },
+              { id: 'XiaoHongShu', volume: 675, positive: 188, negative: 74 },
+              { id: 'Instagram', volume: 550, positive: 118, negative: 78 },
+              { id: 'Facebook', volume: 490, positive: 72, negative: 98 },
+              { id: 'Threads', volume: 342, positive: 48, negative: 54 },
+              { id: 'Reddit', volume: 190, positive: 18, negative: 46 },
+              { id: 'YouTube', volume: 112, positive: 19, negative: 14 },
+              { id: 'LinkedIn', volume: 78, positive: 16, negative: 5 }
+            ],
+            pillars: [
+              { code: 'PIL-01', domain: 'Digital Booking & App Experience', sub: 'Matched keywords: app booking, payment, website check-in, promo code, boarding pass, seat selection', volume: 1142, positive: 245, negative: 198, delta: -1.8, risk: 'Moderate' },
+              { code: 'PIL-02', domain: 'Airport Operations & Ground Handling', sub: 'Matched keywords: check-in counter, baggage delay, lost luggage, terminal queue, boarding gate, ground staff', volume: 888, positive: 164, negative: 162, delta: 1.4, risk: 'Moderate' },
+              { code: 'PIL-03', domain: 'Customer Support & Chatbot (AskBo/AVA)', sub: 'Matched keywords: AskBo, Ask Bo, AVA, support agent, live chat, refund status, refund delay, call center', volume: 761, positive: 82, negative: 218, delta: 4.2, risk: 'High' },
+              { code: 'PIL-04', domain: 'Flight Operations & Cabin Crew', sub: 'Matched keywords: flight delay, flight cancellation, pilot, cabin crew, stewardess, in-flight comfort, seat comfort, safety', volume: 845, positive: 210, negative: 96, delta: -3.1, risk: 'Low' },
+              { code: 'PIL-05', domain: 'Loyalty, Pricing & Add-ons (Baggage/Meals)', sub: 'Matched keywords: baggage price, meal prepay, seat upgrade, airasia points, seat selection cost, booking fee, ancillary', volume: 591, positive: 135, negative: 48, delta: -2.4, risk: 'Low' }
+            ]
+          },
+          move: {
+            briefing: {
+              pill: '🟡 Watch',
+              execStatus: 'Monitor',
+              tone: 'amber',
+              b1: 'AirAsia MOVE tracked 1,640 deduplicated mentions (+6.8% vs. prior period) after excluding 18,950 generic "move" verb posts; Net Sentiment sits at +1.1% (358 Positive vs. 340 Negative).',
+              b2: 'PIL-02 Hotels & Packages (SNAP deal) and PIL-03 Concerts & Activities drive strong advocacy, while PIL-05 Payments & Points and PIL-06 App Help & Tech Bugs account for primary friction.',
+              b3: 'Prioritize payment gateway callback retries in PIL-05 and address OTP login timeout reports in PIL-06 before weekend campaign traffic.'
+            },
+            kpis: { vol: 1640, volTrend: 6.8, pos: 358, posTrend: 3.4, neg: 340, negTrend: 1.2, highReach: 6, views: 480000, reachTrend: -4.1 },
+            platforms: [
+              { id: 'X', volume: 420, positive: 64, negative: 112 },
+              { id: 'XiaoHongShu', volume: 295, positive: 92, negative: 38 },
+              { id: 'TikTok', volume: 265, positive: 74, negative: 46 },
+              { id: 'Instagram', volume: 225, positive: 56, negative: 42 },
+              { id: 'Facebook', volume: 175, positive: 32, negative: 44 },
+              { id: 'Threads', volume: 135, positive: 22, negative: 28 },
+              { id: 'Reddit', volume: 78, positive: 9, negative: 24 },
+              { id: 'YouTube', volume: 29, positive: 5, negative: 4 },
+              { id: 'LinkedIn', volume: 18, positive: 4, negative: 2 }
+            ],
+            pillars: [
+              { code: 'PIL-01', domain: 'Flights', sub: 'Matched keywords: airasia flights, book flight, flight search, flight change, flight schedule, seat selection, flight voucher, travel itinerary', volume: 460, positive: 112, negative: 78, delta: -1.6, risk: 'Moderate' },
+              { code: 'PIL-02', domain: 'Hotels & Packages', sub: 'Matched keywords: hotel booking, hotel stay, SNAP deal, flight hotel package, room confirmation, resort reservation, check-in date, hotel refund', volume: 320, positive: 96, negative: 42, delta: -2.4, risk: 'Low' },
+              { code: 'PIL-03', domain: 'Concerts & Activities', sub: 'Matched keywords: concert tickets, experience booking, event pass, theme park, tour booking, voucher redemption, attraction tickets, live show', volume: 185, positive: 58, negative: 19, delta: -3.1, risk: 'Low' },
+              { code: 'PIL-04', domain: 'Rides & Taxis', sub: 'Matched keywords: airasia ride, book taxi, ride-hailing, driver canceled, airport transfer, ride fare, driver location, pickup point, ride status', volume: 215, positive: 44, negative: 47, delta: 1.5, risk: 'Moderate' },
+              { code: 'PIL-05', domain: 'Payments & Points', sub: 'Matched keywords: airasia points, BigPay, payment gateway, failed transaction, credit card error, double charged, points redemption, refund processing', volume: 250, positive: 30, negative: 82, delta: 4.1, risk: 'High' },
+              { code: 'PIL-06', domain: 'App Help & Tech Bugs', sub: 'Matched keywords: app crash, login error, app update, glitch, loading screen, OTP code, slow performance, technical error, white screen', volume: 210, positive: 18, negative: 72, delta: 3.6, risk: 'High' }
+            ]
+          },
+          santan: {
+            briefing: {
+              pill: '🟢 Healthy',
+              execStatus: 'Healthy',
+              tone: 'emerald',
+              b1: 'Santan generated 680 verified brand mentions (+7.4% vs. prior period) after filtering out 9,840 coconut-milk recipe posts, achieving a +18.2% Net Sentiment Score.',
+              b2: 'PIL-01 In-Flight Food & Service Quality (Pak Nasser nasi lemak) and PIL-02 Retail Product Sales & E-Commerce (freeze-dried & coffee capsules on Shopee/TikTok Shop) drove strong positive advocacy.',
+              b3: 'Expand ready-to-eat & Santan coffee bundle stock on TikTok Shop and prompt flyers to pre-book hot meals 48h prior to departure.'
+            },
+            kpis: { vol: 680, volTrend: 7.4, pos: 186, posTrend: 4.5, neg: 62, negTrend: -3.2, highReach: 1, views: 95000, reachTrend: -18.0 },
+            platforms: [
+              { id: 'TikTok', volume: 195, positive: 56, negative: 14 },
+              { id: 'XiaoHongShu', volume: 168, positive: 58, negative: 9 },
+              { id: 'Instagram', volume: 125, positive: 36, negative: 12 },
+              { id: 'Threads', volume: 74, positive: 16, negative: 10 },
+              { id: 'Facebook', volume: 56, positive: 10, negative: 8 },
+              { id: 'X', volume: 34, positive: 5, negative: 6 },
+              { id: 'YouTube', volume: 14, positive: 3, negative: 2 },
+              { id: 'Reddit', volume: 8, positive: 1, negative: 1 },
+              { id: 'LinkedIn', volume: 6, positive: 1, negative: 0 }
+            ],
+            pillars: [
+              { code: 'PIL-01', domain: 'In-Flight Food & Service Quality', sub: 'Matched keywords: inflight food, airline meal, Pak Nasser, nasi lemak, pre-book meal, cabin food service, hot meal, cold meal, portion size, taste, menu variety', volume: 340, positive: 102, negative: 32, delta: -2.8, risk: 'Low' },
+              { code: 'PIL-02', domain: 'Retail Product Sales & E-Commerce', sub: 'Matched keywords: Santan retail, ready-to-eat, freeze-dried, Santan coffee, coffee capsule, online order, Shopee, Lazada, TikTok Shop, Santan cafe, merchandise, promo', volume: 185, positive: 52, negative: 16, delta: -1.9, risk: 'Low' },
+              { code: 'PIL-03', domain: 'Business Partnerships & Company News', sub: 'Matched keywords: Santan partnership, B2B catering, third-party airline catering, franchise, outlet launch, brand collaboration, corporate news, Catherine Goh, expansion', volume: 85, positive: 20, negative: 6, delta: -1.1, risk: 'Low' },
+              { code: 'PIL-04', domain: 'Brand Trust & Food Safety', sub: 'Matched keywords: halal certification, food safety, hygiene, contamination, food poisoning, expiry date, quality control, allergen info, fresh ingredients, customer trust', volume: 70, positive: 12, negative: 8, delta: -0.7, risk: 'Low' }
+            ]
+          },
+          ade: {
+            briefing: {
+              pill: '🟢 Healthy',
+              execStatus: 'Healthy',
+              tone: 'emerald',
+              b1: 'Asia Digital Engineering (ADE) recorded 310 verified aviation MRO mentions (+5.9% vs. prior period) after blocking 2,610 unrelated "ADE" acronym posts, posting +19.4% Net Sentiment.',
+              b2: 'PIL-01 Plane Maintenance (MRO) and PIL-03 Aviation Tech & Software (RedChain) led positive B2B industry sentiment on LinkedIn and YouTube, while PIL-04 Parts & Supply Chain monitored global OEM spare parts lead times.',
+              b3: 'Highlight ADE’s new hangar bay milestones and RedChain digital engineering adoption in upcoming aviation industry briefings.'
+            },
+            kpis: { vol: 310, volTrend: 5.9, pos: 84, posTrend: 3.4, neg: 24, negTrend: -2.5, highReach: 0, views: 28000, reachTrend: -25.0 },
+            platforms: [
+              { id: 'LinkedIn', volume: 82, positive: 26, negative: 3 },
+              { id: 'X', volume: 58, positive: 16, negative: 6 },
+              { id: 'YouTube', volume: 44, positive: 13, negative: 3 },
+              { id: 'Facebook', volume: 36, positive: 8, negative: 4 },
+              { id: 'Instagram', volume: 32, positive: 9, negative: 2 },
+              { id: 'TikTok', volume: 26, positive: 6, negative: 2 },
+              { id: 'Reddit', volume: 18, positive: 4, negative: 3 },
+              { id: 'Threads', volume: 9, positive: 1, negative: 1 },
+              { id: 'XiaoHongShu', volume: 5, positive: 1, negative: 0 }
+            ],
+            pillars: [
+              { code: 'PIL-01', domain: 'Plane Maintenance (MRO)', sub: 'Matched keywords: MRO, aircraft maintenance, C-check, D-check, base maintenance, hangar, airframe, fleet maintenance, aviation engineering, aircraft service', volume: 95, positive: 28, negative: 5, delta: -2.4, risk: 'Low' },
+              { code: 'PIL-02', domain: 'Client Wins & Partners', sub: 'Matched keywords: MRO contract, client win, airline partnership, airline customer, maintenance deal, B2B agreement, service agreement, fleet contract', volume: 52, positive: 16, negative: 2, delta: -1.8, risk: 'Low' },
+              { code: 'PIL-03', domain: 'Aviation Tech & Software', sub: 'Matched keywords: RedChain, digital logbook, maintenance software, tech log, aviation app, digital engineering, engineering portal, aviation technology', volume: 48, positive: 15, negative: 3, delta: -1.5, risk: 'Low' },
+              { code: 'PIL-04', domain: 'Parts & Supply Chain', sub: 'Matched keywords: spare parts, components, engine swap, parts logistics, procurement delay, tools inventory, aircraft parts, supply chain, material management', volume: 42, positive: 6, negative: 9, delta: 1.9, risk: 'Moderate' },
+              { code: 'PIL-05', domain: 'Engineers, Hiring & Safety', sub: 'Matched keywords: hangar safety, aircraft engineer, hiring, recruitment, engineering talent, safety standard, training program, aviation technician, work safety', volume: 40, positive: 10, negative: 3, delta: -1.2, risk: 'Low' },
+              { code: 'PIL-06', domain: 'Corporate Brand & News', sub: 'Matched keywords: ADE corporate, hangar launch, CEO news, press release, media coverage, aviation awards, company expansion, industry news, corporate milestone', volume: 33, positive: 9, negative: 2, delta: -2.0, risk: 'Low' }
+            ]
+          },
+          teleport: {
+            briefing: {
+              pill: '🟡 Watch',
+              execStatus: 'Monitor',
+              tone: 'amber',
+              b1: 'Teleport logged 420 verified logistics mentions (+3.8% vs. prior period) after filtering out 6,460 gaming/sci-fi "teleport" posts, with Net Sentiment at +1.4% (78 Positive vs. 72 Negative).',
+              b2: 'PIL-01 Cargo & Freight Operations and PIL-03 Corporate Clients & E-Com Merchants earned strong B2B praise, while PIL-04 Custom Clearance & Cross-Border Logistics saw customs hold enquiries.',
+              b3: 'Automate proactive customs-clearance status alerts for PIL-04 cross-border e-commerce shipments to reduce tracking escalations on X.'
+            },
+            kpis: { vol: 420, volTrend: 3.8, pos: 78, posTrend: 2.2, neg: 72, negTrend: -0.9, highReach: 2, views: 89000, reachTrend: -11.0 },
+            platforms: [
+              { id: 'X', volume: 122, positive: 24, negative: 22 },
+              { id: 'LinkedIn', volume: 58, positive: 16, negative: 4 },
+              { id: 'TikTok', volume: 52, positive: 10, negative: 9 },
+              { id: 'Facebook', volume: 48, positive: 7, negative: 12 },
+              { id: 'XiaoHongShu', volume: 42, positive: 8, negative: 6 },
+              { id: 'Threads', volume: 38, positive: 6, negative: 7 },
+              { id: 'Instagram', volume: 30, positive: 4, negative: 5 },
+              { id: 'Reddit', volume: 18, positive: 2, negative: 5 },
+              { id: 'YouTube', volume: 12, positive: 1, negative: 2 }
+            ],
+            pillars: [
+              { code: 'PIL-01', domain: 'Cargo & Freight Operations', sub: 'Matched keywords: cargo space, charter flight, pallet, container, heavy freight, air cargo, commercial belly, Teleport cargo, general cargo, freighter', volume: 96, positive: 24, negative: 10, delta: -1.8, risk: 'Low' },
+              { code: 'PIL-02', domain: 'E-Commerce & Parcel Delivery', sub: 'Matched keywords: Teleport delivery, parcel drop, door-to-door, e-commerce parcel, parcel tracking, transit status, package delay, shipping delay, sorting center', volume: 112, positive: 18, negative: 24, delta: 1.6, risk: 'Moderate' },
+              { code: 'PIL-03', domain: 'Corporate Clients & E-Com Merchants', sub: 'Matched keywords: B2B logistics, merchant partnership, corporate client, logistics agreement, fulfillment client, API integration, seller support, business shipping', volume: 64, positive: 14, negative: 7, delta: -1.2, risk: 'Low' },
+              { code: 'PIL-04', domain: 'Custom Clearance & Cross-Border Logistics', sub: 'Matched keywords: customs delay, warehouse hold, clearance customs, cross-border, duty fee, import clearance, tax declaration, border processing', volume: 72, positive: 7, negative: 21, delta: 3.1, risk: 'High' },
+              { code: 'PIL-05', domain: 'Fleet, Warehouses & Network Expansion', sub: 'Matched keywords: delivery partner, courier rider, warehouse expansion, sorting hub, logistics facility, regional network, warehouse capacity', volume: 44, positive: 8, negative: 6, delta: -0.9, risk: 'Low' },
+              { code: 'PIL-06', domain: 'Corporate Brand, Leadership & ESG', sub: 'Matched keywords: Teleport corporate, Pete Chareonwongsak, ESG goals, carbon offset, leadership news, press release, logistics award, capital raise, company milestone', volume: 32, positive: 7, negative: 4, delta: -1.4, risk: 'Low' }
+            ]
+          }
+        };
+
+        var POSTS = [
+          // AIRASIA (AIRLINE) - All 9 Social Channels & 5 Operational Pillars (Current Oct 2026 Live Window)
+          {
+            id: 'POST-101', entityId: 'airasia', entityLabel: 'AirAsia (Airline)', platform: 'YouTube', pillarCode: 'PIL-04', sentiment: 'Positive',
+            isHighReach: true, viewsCount: 145000, viewsFormatted: '145K Views', engagementLabel: '🔥 Flight Review',
+            authorHandle: '@asean_flight_diaries', relativeTime: '18 hrs ago • Oct 27', minutesAgo: 1080,
+            detectedLanguage: 'English', isNonEnglish: false,
+            originalText: 'Flying AirAsia A321neo KLIA2 to Kota Kinabalu (AK5106) this week — smooth boarding at Gate J8, friendly cabin crew, and great seat comfort on a full morning flight.',
+            englishText: 'Flying AirAsia A321neo KLIA2 to Kota Kinabalu (AK5106) this week — smooth boarding at Gate J8, friendly cabin crew, and great seat comfort on a full morning flight.',
+            keywords: ['AirAsia', 'flight', 'cabin crew', 'seat comfort', 'KLIA2']
+          },
+          {
+            id: 'POST-102', entityId: 'airasia', entityLabel: 'AirAsia (Airline)', platform: 'TikTok', pillarCode: 'PIL-04', sentiment: 'Positive',
+            isHighReach: true, viewsCount: 410000, viewsFormatted: '410K Views', engagementLabel: '🔥 Viral Advocacy',
+            authorHandle: '@flyairasia', relativeTime: '2 days ago • Oct 26', minutesAgo: 2880,
+            detectedLanguage: 'Bahasa Melayu (Auto-Detected)', isNonEnglish: true,
+            originalText: 'Terbang bersama cabin crew AirAsia dari KLIA2 ke Kuching & Pulau Pinang minggu ini! ✈️❤️ Terima kasih kepada kapten pilot & pramugari kami yang sentiasa menjaga safety dan in-flight comfort penumpang. #FlyAirAsia #CabinCrew',
+            englishText: 'Flying with AirAsia cabin crew from KLIA2 to Kuching & Penang this week! ✈️❤️ Thank you to our captain pilot & flight attendants who always uphold passenger safety and in-flight comfort. #FlyAirAsia #CabinCrew',
+            keywords: ['AirAsia', 'cabin crew', 'pilot', 'safety', 'in-flight comfort']
+          },
+          {
+            id: 'POST-103', entityId: 'airasia', entityLabel: 'AirAsia (Airline)', platform: 'XiaoHongShu', pillarCode: 'PIL-02', sentiment: 'Negative',
+            isHighReach: true, viewsCount: 118000, viewsFormatted: '118K Views', engagementLabel: '🔥 High Engagement',
+            authorHandle: '@吉隆坡飞行日记_林', relativeTime: '1 day ago • Oct 27', minutesAgo: 1560,
+            detectedLanguage: '中文 Mandarin (Auto-Detected)', isNonEnglish: true,
+            originalText: '今日吉隆坡KLIA2亚航早班机实测✈️ 早高峰托运柜台排队人较多，建议提前线上值机领电子登机牌！今天在P区登机口地勤严格执行7kg随身行李称重，超重需在柜台补办托运。#亚航 #吉隆坡机场 #AirAsia',
+            englishText: 'Today’s KLIA2 AirAsia morning flight experience ✈️ The morning terminal queue at the check-in counter is busy, so complete online check-in early! Ground staff at the Pier P boarding gate strictly weighed 7kg cabin baggage today. #AirAsia #KLIA2',
+            keywords: ['AirAsia', 'KLIA2', 'terminal queue', 'check-in counter', 'boarding gate', 'ground staff']
+          },
+          {
+            id: 'POST-104', entityId: 'airasia', entityLabel: 'AirAsia (Airline)', platform: 'X', pillarCode: 'PIL-02', sentiment: 'Negative',
+            isHighReach: false, viewsCount: 14200, viewsFormatted: '14.2K Views', engagementLabel: '⚠️ Delay Update',
+            authorHandle: '@klia2_commuter', relativeTime: '38 mins ago • Oct 28', minutesAgo: 38,
+            detectedLanguage: 'English', isNonEnglish: false,
+            originalText: 'Flight AK512 from KLIA2 to Penang delayed by 45 mins this afternoon due to late incoming aircraft turnaround at boarding gate J12, though ground staff updated the departure screen promptly.',
+            englishText: 'Flight AK512 from KLIA2 to Penang delayed by 45 mins this afternoon due to late incoming aircraft turnaround at boarding gate J12, though ground staff updated the departure screen promptly.',
+            keywords: ['Flight', 'KLIA2', 'delayed', 'boarding gate', 'ground staff']
+          },
+          {
+            id: 'POST-105', entityId: 'airasia', entityLabel: 'AirAsia (Airline)', platform: 'Instagram', pillarCode: 'PIL-01', sentiment: 'Positive',
+            isHighReach: true, viewsCount: 92000, viewsFormatted: '92K Views', engagementLabel: '🟢 High Advocacy',
+            authorHandle: '@wanderlust_aisyah', relativeTime: '1 day ago • Oct 27', minutesAgo: 1820,
+            detectedLanguage: 'English', isNonEnglish: false,
+            originalText: 'Smooth weekend getaway from KUL to Krabi with @flyairasia! Completed app booking with our weekend promo code, selected Hot Seats, and synced our digital boarding pass via website check-in in under 2 minutes. ✈️🌴',
+            englishText: 'Smooth weekend getaway from KUL to Krabi with @flyairasia! Completed app booking with our weekend promo code, selected Hot Seats, and synced our digital boarding pass via website check-in in under 2 minutes. ✈️🌴',
+            keywords: ['app booking', 'promo code', 'boarding pass', 'website check-in']
+          },
+          {
+            id: 'POST-106', entityId: 'airasia', entityLabel: 'AirAsia (Airline)', platform: 'Reddit', pillarCode: 'PIL-03', sentiment: 'Negative',
+            isHighReach: false, viewsCount: 18500, viewsFormatted: '18.5K Views', engagementLabel: '💬 Refund Thread',
+            authorHandle: 'r/malaysia • u/asean_flyer', relativeTime: '3 hrs ago • Oct 28', minutesAgo: 185,
+            detectedLanguage: 'English', isNonEnglish: false,
+            originalText: 'Anyone else checking on an AirAsia flight reschedule refund status today? AskBo automated bot took three prompts before transferring my case ID to a human live chat support agent.',
+            englishText: 'Anyone else checking on an AirAsia flight reschedule refund status today? AskBo automated bot took three prompts before transferring my case ID to a human live chat support agent.',
+            keywords: ['AirAsia', 'flight', 'refund status', 'AskBo', 'live chat', 'support agent']
+          },
+          {
+            id: 'POST-107', entityId: 'airasia', entityLabel: 'AirAsia (Airline)', platform: 'Facebook', pillarCode: 'PIL-05', sentiment: 'Positive',
+            isHighReach: false, viewsCount: 48500, viewsFormatted: '48.5K Views', engagementLabel: '🟢 Promo Value',
+            authorHandle: '@flyairasia.ph', relativeTime: '9 hrs ago • Oct 28', minutesAgo: 540,
+            detectedLanguage: 'Tagalog (Auto-Detected)', isNonEnglish: true,
+            originalText: 'Lumipad mula Manila papuntang Cebu, Boracay, at Tokyo ngayong linggo! Sulit ang base fare at mas mura ang 20kg baggage price at meal prepay kapag binili online gamit ang airasia points!',
+            englishText: 'Fly from Manila to Cebu, Boracay, and Tokyo this week! Great value base fare, and 20kg baggage price plus meal prepay are much cheaper when pre-booked online with airasia points!',
+            keywords: ['base fare', 'baggage price', 'meal prepay', 'airasia points']
+          },
+          {
+            id: 'POST-108', entityId: 'airasia', entityLabel: 'AirAsia (Airline)', platform: 'Threads', pillarCode: 'PIL-01', sentiment: 'Positive',
+            isHighReach: false, viewsCount: 11200, viewsFormatted: '11.2K Views', engagementLabel: '🟢 Digital Check-In',
+            authorHandle: '@nadia.travels.my', relativeTime: '1 hr ago • Oct 28', minutesAgo: 72,
+            detectedLanguage: 'English', isNonEnglish: false,
+            originalText: 'Completed website check-in for our evening Kuching flight and added our boarding pass straight to Apple Wallet — walked right past the counter queue at KLIA2 with cabin-only bags!',
+            englishText: 'Completed website check-in for our evening Kuching flight and added our boarding pass straight to Apple Wallet — walked right past the counter queue at KLIA2 with cabin-only bags!',
+            keywords: ['website check-in', 'boarding pass', 'KLIA2']
+          },
+          {
+            id: 'POST-109', entityId: 'airasia', entityLabel: 'AirAsia (Airline)', platform: 'LinkedIn', pillarCode: 'PIL-05', sentiment: 'Positive',
+            isHighReach: false, viewsCount: 34000, viewsFormatted: '34K Views', engagementLabel: '🟢 Network & Fare Outlook',
+            authorHandle: 'ASEAN Aviation & Fleet Desk', relativeTime: '6 hrs ago • Oct 28', minutesAgo: 360,
+            detectedLanguage: 'English', isNonEnglish: false,
+            originalText: 'AirAsia Aviation Group maintains strong load factors across ASEAN routes this week, supported by competitive ancillary baggage price bundles, meal prepay uptake, and high short-haul fleet utilization.',
+            englishText: 'AirAsia Aviation Group maintains strong load factors across ASEAN routes this week, supported by competitive ancillary baggage price bundles, meal prepay uptake, and high short-haul fleet utilization.',
+            keywords: ['AirAsia', 'ancillary', 'baggage price', 'meal prepay']
+          },
+
+          // AIRASIA MOVE - All 9 Social Channels & 6 Operational Pillars (Current Oct 2026 Live Window)
+          {
+            id: 'POST-201', entityId: 'move', entityLabel: 'AirAsia MOVE', platform: 'Instagram', pillarCode: 'PIL-03', sentiment: 'Positive',
+            isHighReach: true, viewsCount: 168000, viewsFormatted: '168K Views', engagementLabel: '🔥 Viral Advocacy',
+            authorHandle: '@airasiamove', relativeTime: '2 days ago • Oct 26', minutesAgo: 2640,
+            detectedLanguage: 'English', isNonEnglish: false,
+            originalText: 'Planning your year-end live show & holiday itinerary? 🎟️✈️ Unlock instant voucher redemption deals on concert tickets, theme park passes, flights, and hotels right inside AirAsia MOVE!',
+            englishText: 'Planning your year-end live show & holiday itinerary? 🎟️✈️ Unlock instant voucher redemption deals on concert tickets, theme park passes, flights, and hotels right inside AirAsia MOVE!',
+            keywords: ['AirAsia MOVE', 'voucher redemption', 'live show', 'concert tickets', 'theme park']
+          },
+          {
+            id: 'POST-202', entityId: 'move', entityLabel: 'AirAsia MOVE', platform: 'TikTok', pillarCode: 'PIL-02', sentiment: 'Positive',
+            isHighReach: true, viewsCount: 142000, viewsFormatted: '142K Views', engagementLabel: '🔥 High Engagement',
+            authorHandle: '@manila_weekender', relativeTime: '1 day ago • Oct 27', minutesAgo: 1680,
+            detectedLanguage: 'Tagalog (Auto-Detected)', isNonEnglish: true,
+            originalText: 'Sobrang sulit ng SNAP deal flight hotel package sa AirAsia MOVE app ngayong linggo! Booked our 4D3N Bangkok trip with instant hotel booking room confirmation at 25% less! #AirAsiaMOVE #SNAPDeal',
+            englishText: 'The SNAP deal flight hotel package on the AirAsia MOVE app this week is such great value! Booked our 4D3N Bangkok trip with instant hotel booking room confirmation at 25% less! #AirAsiaMOVE #SNAPDeal',
+            keywords: ['AirAsia MOVE', 'app', 'SNAP deal', 'flight hotel package', 'hotel booking', 'room confirmation']
+          },
+          {
+            id: 'POST-203', entityId: 'move', entityLabel: 'AirAsia MOVE', platform: 'XiaoHongShu', pillarCode: 'PIL-05', sentiment: 'Positive',
+            isHighReach: true, viewsCount: 96000, viewsFormatted: '96K Views', engagementLabel: '🔥 Points & BigPay Hack',
+            authorHandle: '@大马生活家_Chloe', relativeTime: '16 hrs ago • Oct 27', minutesAgo: 960,
+            detectedLanguage: '中文 Mandarin (Auto-Detected)', isNonEnglish: true,
+            originalText: '今天在AirAsia MOVE订吉隆坡飞兰卡威周末机加酒太划算了！用BigPay支付不仅免手续费，结账时还能直接用AirAsia Points积分抵扣RM120，电子行程单秒出✨ #AirAsiaMOVE #兰卡威攻略',
+            englishText: 'Booking our Kuala Lumpur to Langkawi weekend flight+hotel on AirAsia MOVE today was such a steal! Paying via BigPay payment gateway had zero fees and we redeemed airasia points for RM120 off at checkout✨ #AirAsiaMOVE',
+            keywords: ['AirAsia MOVE', 'BigPay', 'payment gateway', 'airasia points']
+          },
+          {
+            id: 'POST-204', entityId: 'move', entityLabel: 'AirAsia MOVE', platform: 'YouTube', pillarCode: 'PIL-01', sentiment: 'Positive',
+            isHighReach: false, viewsCount: 58000, viewsFormatted: '58K Views', engagementLabel: '🟢 Booking Guide',
+            authorHandle: '@asean_travel_tech', relativeTime: '12 hrs ago • Oct 28', minutesAgo: 720,
+            detectedLanguage: 'English', isNonEnglish: false,
+            originalText: 'AirAsia MOVE Superapp Walkthrough — Comparing multi-airline flight search, seat selection, and real-time travel itinerary alerts for regional ASEAN trips.',
+            englishText: 'AirAsia MOVE Superapp Walkthrough — Comparing multi-airline flight search, seat selection, and real-time travel itinerary alerts for regional ASEAN trips.',
+            keywords: ['AirAsia MOVE', 'flight search', 'seat selection', 'travel itinerary']
+          },
+          {
+            id: 'POST-205', entityId: 'move', entityLabel: 'AirAsia MOVE', platform: 'X', pillarCode: 'PIL-06', sentiment: 'Negative',
+            isHighReach: false, viewsCount: 12800, viewsFormatted: '12.8K Views', engagementLabel: '⚠️ Checkout Latency',
+            authorHandle: '@tech_nomad_kl', relativeTime: '42 mins ago • Oct 28', minutesAgo: 42,
+            detectedLanguage: 'English', isNonEnglish: false,
+            originalText: 'AirAsia MOVE app loading screen spun for almost a minute during checkout after today’s app update — had to refresh the payment tab to confirm my booking.',
+            englishText: 'AirAsia MOVE app loading screen spun for almost a minute during checkout after today’s app update — had to refresh the payment tab to confirm my booking.',
+            keywords: ['AirAsia MOVE', 'loading screen', 'app update', 'booking']
+          },
+          {
+            id: 'POST-206', entityId: 'move', entityLabel: 'AirAsia MOVE', platform: 'Threads', pillarCode: 'PIL-04', sentiment: 'Positive',
+            isHighReach: false, viewsCount: 15400, viewsFormatted: '15.4K Views', engagementLabel: '🟢 Airport Ride Feature',
+            authorHandle: '@farah_wanderlust', relativeTime: '2 hrs ago • Oct 28', minutesAgo: 118,
+            detectedLanguage: 'English', isNonEnglish: false,
+            originalText: 'Pre-booked an airasia ride to KLIA2 for our morning flight via the AirAsia MOVE app — driver arrived 10 mins early at the pickup point and the airport transfer ride fare was locked in!',
+            englishText: 'Pre-booked an airasia ride to KLIA2 for our morning flight via the AirAsia MOVE app — driver arrived 10 mins early at the pickup point and the airport transfer ride fare was locked in!',
+            keywords: ['airasia ride', 'AirAsia MOVE', 'pickup point', 'airport transfer', 'ride fare']
+          },
+          {
+            id: 'POST-207', entityId: 'move', entityLabel: 'AirAsia MOVE', platform: 'Facebook', pillarCode: 'PIL-02', sentiment: 'Negative',
+            isHighReach: false, viewsCount: 32000, viewsFormatted: '32K Views', engagementLabel: '⚠️ Hotel Voucher Check',
+            authorHandle: '@travel_community_my', relativeTime: '5 hrs ago • Oct 28', minutesAgo: 310,
+            detectedLanguage: 'English', isNonEnglish: false,
+            originalText: 'Sharing our recent AirAsia MOVE app hotel booking and SNAP deal flight hotel package tip — remember to keep your PDF room confirmation handy when checking in at partner hotels.',
+            englishText: 'Sharing our recent AirAsia MOVE app hotel booking and SNAP deal flight hotel package tip — remember to keep your PDF room confirmation handy when checking in at partner hotels.',
+            keywords: ['AirAsia MOVE', 'hotel booking', 'SNAP deal', 'flight hotel package', 'room confirmation']
+          },
+          {
+            id: 'POST-208', entityId: 'move', entityLabel: 'AirAsia MOVE', platform: 'Reddit', pillarCode: 'PIL-05', sentiment: 'Negative',
+            isHighReach: false, viewsCount: 21500, viewsFormatted: '21.5K Views', engagementLabel: '💬 Payment Discussion',
+            authorHandle: 'r/malaysia • u/subang_flyer', relativeTime: '4 hrs ago • Oct 28', minutesAgo: 245,
+            detectedLanguage: 'English', isNonEnglish: false,
+            originalText: 'PSA: If your FPX payment gateway times out on AirAsia MOVE during peak hours, check your ‘My Bookings’ tab first before paying twice — refund processing to credit card takes 5–7 business days.',
+            englishText: 'PSA: If your FPX payment gateway times out on AirAsia MOVE during peak hours, check your ‘My Bookings’ tab first before paying twice — refund processing to credit card takes 5–7 business days.',
+            keywords: ['payment gateway', 'AirAsia MOVE', 'refund processing']
+          },
+          {
+            id: 'POST-209', entityId: 'move', entityLabel: 'AirAsia MOVE', platform: 'LinkedIn', pillarCode: 'PIL-01', sentiment: 'Positive',
+            isHighReach: false, viewsCount: 38000, viewsFormatted: '38K Views', engagementLabel: '🟢 OTA Ecosystem Growth',
+            authorHandle: 'Nadia Omer • CEO, AirAsia MOVE', relativeTime: '8 hrs ago • Oct 28', minutesAgo: 480,
+            detectedLanguage: 'English', isNonEnglish: false,
+            originalText: 'Proud of the AirAsia MOVE engineering and product teams for streamlining multi-carrier flight search, real-time travel itinerary alerts, and seamless airasia points rewards across ASEAN.',
+            englishText: 'Proud of the AirAsia MOVE engineering and product teams for streamlining multi-carrier flight search, real-time travel itinerary alerts, and seamless airasia points rewards across ASEAN.',
+            keywords: ['AirAsia MOVE', 'flight search', 'travel itinerary', 'airasia points']
+          },
+
+          // SANTAN - All 9 Social Channels & 4 Operational Pillars (Current Oct 2026 Live Window)
+          {
+            id: 'POST-301', entityId: 'santan', entityLabel: 'Santan', platform: 'YouTube', pillarCode: 'PIL-01', sentiment: 'Positive',
+            isHighReach: true, viewsCount: 148000, viewsFormatted: '148K Views', engagementLabel: '🔥 Viral Advocacy',
+            authorHandle: '@kl_inflight_foodie', relativeTime: '2 days ago • Oct 26', minutesAgo: 2760,
+            detectedLanguage: 'English', isNonEnglish: false,
+            originalText: 'Reviewing Santan AirAsia’s Inflight Menu on KUL–BKK: Pak Nasser’s Nasi Lemak & Uncle Chin’s Chicken Rice! Always pre-book meal online — the hot meal sambal taste and portion size are unbeatable at 35,000 feet.',
+            englishText: 'Reviewing Santan AirAsia’s Inflight Menu on KUL–BKK: Pak Nasser’s Nasi Lemak & Uncle Chin’s Chicken Rice! Always pre-book meal online — the hot meal sambal taste and portion size are unbeatable at 35,000 feet.',
+            keywords: ['Santan', 'Pak Nasser', 'Nasi Lemak', 'pre-book meal', 'hot meal', 'taste', 'portion size']
+          },
+          {
+            id: 'POST-302', entityId: 'santan', entityLabel: 'Santan', platform: 'Instagram', pillarCode: 'PIL-02', sentiment: 'Positive',
+            isHighReach: true, viewsCount: 154000, viewsFormatted: '154K Views', engagementLabel: '🔥 Viral Advocacy',
+            authorHandle: '@santan.asean', relativeTime: '1 day ago • Oct 27', minutesAgo: 1740,
+            detectedLanguage: 'English', isNonEnglish: false,
+            originalText: 'Real Food. Real Ingredients. 🌽🍗🥦 Stock up on Santan retail freeze-dried Santan coffee capsules, ready-to-eat meals, and signature Santan cafe creations this week! #Santan #PakNasser',
+            englishText: 'Real Food. Real Ingredients. 🌽🍗🥦 Stock up on Santan retail freeze-dried Santan coffee capsules, ready-to-eat meals, and signature Santan cafe creations this week! #Santan #PakNasser',
+            keywords: ['Santan retail', 'freeze-dried', 'Santan coffee', 'ready-to-eat', 'Santan cafe']
+          },
+          {
+            id: 'POST-303', entityId: 'santan', entityLabel: 'Santan', platform: 'TikTok', pillarCode: 'PIL-02', sentiment: 'Positive',
+            isHighReach: true, viewsCount: 128000, viewsFormatted: '128K Views', engagementLabel: '🔥 Cafe Review',
+            authorHandle: '@kl_foodie_hunt', relativeTime: '19 hrs ago • Oct 27', minutesAgo: 1140,
+            detectedLanguage: 'Bahasa Melayu (Auto-Detected)', isNonEnglish: true,
+            originalText: 'Singgah Santan cafe hari ni! 🔥 Nasi Lemak Pak Nasser siap ayam rendang & Santan coffee memang padu, siap beli pek ready-to-eat Santan retail dekat TikTok Shop bawa balik rumah!',
+            englishText: 'Stopped by Santan cafe today! 🔥 Pak Nasser’s Nasi Lemak with chicken rendang & Santan coffee is amazing, plus we grabbed ready-to-eat Santan retail packs on TikTok Shop for home!',
+            keywords: ['Santan cafe', 'Pak Nasser', 'Santan coffee', 'ready-to-eat', 'Santan retail', 'TikTok Shop']
+          },
+          {
+            id: 'POST-304', entityId: 'santan', entityLabel: 'Santan', platform: 'XiaoHongShu', pillarCode: 'PIL-01', sentiment: 'Positive',
+            isHighReach: false, viewsCount: 64000, viewsFormatted: '64K Views', engagementLabel: '🟢 Inflight Foodie Note',
+            authorHandle: '@吃货在吉隆坡', relativeTime: '7 hrs ago • Oct 28', minutesAgo: 420,
+            detectedLanguage: '中文 Mandarin (Auto-Detected)', isNonEnglish: true,
+            originalText: '今天坐亚航必点的Santan飞机餐！提前在网上预订了Pak Nasser椰浆饭和仁当鸡热食，空姐送餐超快，参巴酱微辣超下饭，绝对是性价比最高的航空餐🍱✈️ #亚航飞机餐 #Santan',
+            englishText: 'Must-order Santan airline meal on AirAsia today! Completed pre-book meal online for Pak Nasser nasi lemak and chicken rendang hot meal — served piping hot with authentic sambal taste! 🍱✈️',
+            keywords: ['Santan', 'airline meal', 'pre-book meal', 'Pak Nasser', 'nasi lemak', 'hot meal', 'taste']
+          },
+          {
+            id: 'POST-305', entityId: 'santan', entityLabel: 'Santan', platform: 'Reddit', pillarCode: 'PIL-03', sentiment: 'Positive',
+            isHighReach: false, viewsCount: 28000, viewsFormatted: '28K Views', engagementLabel: '🟢 B2B Catering Expansion',
+            authorHandle: 'r/malaysia • u/ktmb_commuter', relativeTime: '5 hrs ago • Oct 28', minutesAgo: 300,
+            detectedLanguage: 'English', isNonEnglish: false,
+            originalText: 'Tried the hot meals supplied through Santan partnership and B2B catering onboard — impressive how Santan’s brand collaboration and third-party airline catering taste fresh every trip.',
+            englishText: 'Tried the hot meals supplied through Santan partnership and B2B catering onboard — impressive how Santan’s brand collaboration and third-party airline catering taste fresh every trip.',
+            keywords: ['Santan partnership', 'B2B catering', 'brand collaboration', 'third-party airline catering']
+          },
+          {
+            id: 'POST-306', entityId: 'santan', entityLabel: 'Santan', platform: 'Facebook', pillarCode: 'PIL-01', sentiment: 'Positive',
+            isHighReach: false, viewsCount: 49000, viewsFormatted: '49K Views', engagementLabel: '🟢 Pre-Book Hot Meal',
+            authorHandle: '@flyairasia.th', relativeTime: '9 hrs ago • Oct 28', minutesAgo: 540,
+            detectedLanguage: 'ภาษาไทย Thai (Auto-Detected)', isNonEnglish: true,
+            originalText: '🍽️ Santan Menu Alert! ความอร่อยที่จองได้ สั่งจอง pre-book meal มื้ออาหารร้อน hot meal บนเที่ยวบินแอร์เอเชีย รสชาติ taste อร่อยเหมือนทานที่ร้าน!',
+            englishText: '🍽️ Santan Menu Alert! Deliciousness you can book — pre-book meal for hot meal service onboard AirAsia flights with authentic restaurant taste!',
+            keywords: ['Santan', 'pre-book meal', 'hot meal', 'taste']
+          },
+          {
+            id: 'POST-307', entityId: 'santan', entityLabel: 'Santan', platform: 'X', pillarCode: 'PIL-01', sentiment: 'Negative',
+            isHighReach: false, viewsCount: 9800, viewsFormatted: '9.8K Views', engagementLabel: '⚠️ Onboard Stock Note',
+            authorHandle: '@frequentflyer_my', relativeTime: '48 mins ago • Oct 28', minutesAgo: 48,
+            detectedLanguage: 'English', isNonEnglish: false,
+            originalText: 'Flew KUL–SIN this afternoon and forgot to pre-book meal online — onboard buy-on-board Santan Pak Nasser nasi lemak hot meal sold out by Row 14! Definitely pre-booking next time.',
+            englishText: 'Flew KUL–SIN this afternoon and forgot to pre-book meal online — onboard buy-on-board Santan Pak Nasser nasi lemak hot meal sold out by Row 14! Definitely pre-booking next time.',
+            keywords: ['pre-book meal', 'Santan', 'Pak Nasser', 'nasi lemak', 'hot meal']
+          },
+          {
+            id: 'POST-308', entityId: 'santan', entityLabel: 'Santan', platform: 'Threads', pillarCode: 'PIL-04', sentiment: 'Positive',
+            isHighReach: false, viewsCount: 19500, viewsFormatted: '19.5K Views', engagementLabel: '🟢 Halal & Food Safety',
+            authorHandle: '@aisyah.halal.eats', relativeTime: '3 hrs ago • Oct 28', minutesAgo: 190,
+            detectedLanguage: 'English', isNonEnglish: false,
+            originalText: 'Appreciate how Santan prints full JAKIM halal certification, allergen info, and expiry date batch codes on every meal pack — strict food safety and central kitchen quality control.',
+            englishText: 'Appreciate how Santan prints full JAKIM halal certification, allergen info, and expiry date batch codes on every meal pack — strict food safety and central kitchen quality control.',
+            keywords: ['Santan', 'halal certification', 'allergen info', 'expiry date', 'food safety', 'quality control']
+          },
+          {
+            id: 'POST-309', entityId: 'santan', entityLabel: 'Santan', platform: 'LinkedIn', pillarCode: 'PIL-03', sentiment: 'Positive',
+            isHighReach: false, viewsCount: 39000, viewsFormatted: '39K Views', engagementLabel: '🟢 B2B Culinary Expansion',
+            authorHandle: 'Catherine Goh • CEO, Santan', relativeTime: '11 hrs ago • Oct 28', minutesAgo: 660,
+            detectedLanguage: 'English', isNonEnglish: false,
+            originalText: 'Under Catherine Goh’s leadership, Santan continues scaling B2B catering partnerships, retail brand collaboration, and third-party airline catering expansion across ASEAN.',
+            englishText: 'Under Catherine Goh’s leadership, Santan continues scaling B2B catering partnerships, retail brand collaboration, and third-party airline catering expansion across ASEAN.',
+            keywords: ['Catherine Goh', 'Santan', 'B2B catering', 'brand collaboration', 'third-party airline catering', 'expansion']
+          },
+
+          // ASIA DIGITAL ENGINEERING (ADE) - All 9 Social Channels & 6 Operational Pillars (Current Oct 2026 Live Window)
+          {
+            id: 'POST-401', entityId: 'ade', entityLabel: 'Asia Digital Engineering (ADE)', platform: 'YouTube', pillarCode: 'PIL-01', sentiment: 'Positive',
+            isHighReach: true, viewsCount: 84000, viewsFormatted: '84K Views', engagementLabel: '🔥 Hangar Operations',
+            authorHandle: '@asean_aerospace_digest', relativeTime: '2 days ago • Oct 26', minutesAgo: 2820,
+            detectedLanguage: 'English', isNonEnglish: false,
+            originalText: 'Inside Asia Digital Engineering (ADE)’s 14-Line Hangar in Sepang — How Southeast Asia’s leading MRO executes rapid Airbus A320 and A330 C-check base maintenance and fleet maintenance turnaround.',
+            englishText: 'Inside Asia Digital Engineering (ADE)’s 14-Line Hangar in Sepang — How Southeast Asia’s leading MRO executes rapid Airbus A320 and A330 C-check base maintenance and fleet maintenance turnaround.',
+            keywords: ['Asia Digital Engineering', 'ADE', 'MRO', 'C-check', 'base maintenance', 'fleet maintenance']
+          },
+          {
+            id: 'POST-402', entityId: 'ade', entityLabel: 'Asia Digital Engineering (ADE)', platform: 'Facebook', pillarCode: 'PIL-02', sentiment: 'Positive',
+            isHighReach: false, viewsCount: 38000, viewsFormatted: '38K Views', engagementLabel: '🟢 Third-Party MRO Win',
+            authorHandle: '@malaysia_aviation_watch', relativeTime: '14 hrs ago • Oct 28', minutesAgo: 840,
+            detectedLanguage: 'English', isNonEnglish: false,
+            originalText: 'AVIATION: Asia Digital Engineering (ADE) expands its regional MRO contract portfolio with a new multi-year airline partnership and B2B agreement to support commercial airline customer fleets.',
+            englishText: 'AVIATION: Asia Digital Engineering (ADE) expands its regional MRO contract portfolio with a new multi-year airline partnership and B2B agreement to support commercial airline customer fleets.',
+            keywords: ['Asia Digital Engineering', 'ADE', 'MRO contract', 'airline partnership', 'B2B agreement', 'airline customer']
+          },
+          {
+            id: 'POST-403', entityId: 'ade', entityLabel: 'Asia Digital Engineering (ADE)', platform: 'X', pillarCode: 'PIL-03', sentiment: 'Positive',
+            isHighReach: false, viewsCount: 24500, viewsFormatted: '24.5K Views', engagementLabel: '🟢 Tech Innovation',
+            authorHandle: '@mro_tech_apac', relativeTime: '4 hrs ago • Oct 28', minutesAgo: 240,
+            detectedLanguage: 'English', isNonEnglish: false,
+            originalText: 'Asia Digital Engineering (ADE) scales its RedChain predictive maintenance software and digital logbook engineering portal across regional aircraft maintenance bays to reduce turnaround time.',
+            englishText: 'Asia Digital Engineering (ADE) scales its RedChain predictive maintenance software and digital logbook engineering portal across regional aircraft maintenance bays to reduce turnaround time.',
+            keywords: ['Asia Digital Engineering', 'ADE', 'RedChain', 'maintenance software', 'digital logbook', 'engineering portal']
+          },
+          {
+            id: 'POST-404', entityId: 'ade', entityLabel: 'Asia Digital Engineering (ADE)', platform: 'LinkedIn', pillarCode: 'PIL-05', sentiment: 'Positive',
+            isHighReach: false, viewsCount: 49500, viewsFormatted: '49.5K Views', engagementLabel: '🟢 Talent & Safety',
+            authorHandle: 'ADE (Asia Digital Engineering)', relativeTime: '10 hrs ago • Oct 28', minutesAgo: 600,
+            detectedLanguage: 'English', isNonEnglish: false,
+            originalText: 'Asia Digital Engineering (ADE) is expanding our licensed aircraft engineer hiring and aviation technician training program in Sepang with strict EASA & CAAM hangar safety and work safety standards.',
+            englishText: 'Asia Digital Engineering (ADE) is expanding our licensed aircraft engineer hiring and aviation technician training program in Sepang with strict EASA & CAAM hangar safety and work safety standards.',
+            keywords: ['Asia Digital Engineering', 'ADE', 'aircraft engineer', 'hiring', 'aviation technician', 'training program', 'hangar safety', 'work safety']
+          },
+          {
+            id: 'POST-405', entityId: 'ade', entityLabel: 'Asia Digital Engineering (ADE)', platform: 'TikTok', pillarCode: 'PIL-01', sentiment: 'Positive',
+            isHighReach: true, viewsCount: 95000, viewsFormatted: '95K Views', engagementLabel: '🔥 Hangar Night Shift',
+            authorHandle: '@engineer_di_awan', relativeTime: '1 day ago • Oct 27', minutesAgo: 1620,
+            detectedLanguage: 'Bahasa Melayu (Auto-Detected)', isNonEnglish: true,
+            originalText: 'Suasana kerja malam sebagai jurutera MRO di hangar Asia Digital Engineering (ADE) Sepang minggu ini 🛠️✈️ Pemeriksaan rapi C-check base maintenance dan fleet maintenance sebelum pesawat kembali terbang!',
+            englishText: 'Night shift life as an MRO engineer at the Asia Digital Engineering (ADE) Sepang hangar this week 🛠️✈️ Thorough C-check base maintenance and fleet maintenance inspection before the aircraft returns to service!',
+            keywords: ['MRO', 'hangar', 'Asia Digital Engineering', 'ADE', 'C-check', 'base maintenance', 'fleet maintenance']
+          },
+          {
+            id: 'POST-406', entityId: 'ade', entityLabel: 'Asia Digital Engineering (ADE)', platform: 'Instagram', pillarCode: 'PIL-06', sentiment: 'Positive',
+            isHighReach: false, viewsCount: 46000, viewsFormatted: '46K Views', engagementLabel: '🟢 Corporate Milestone',
+            authorHandle: '@ade.aero', relativeTime: '18 hrs ago • Oct 27', minutesAgo: 1080,
+            detectedLanguage: 'English', isNonEnglish: false,
+            originalText: 'ADE corporate milestone: Asia Digital Engineering marks record multi-bay MRO utilization at KLIA Aeropolis alongside regional aviation awards and ongoing company expansion across ASEAN.',
+            englishText: 'ADE corporate milestone: Asia Digital Engineering marks record multi-bay MRO utilization at KLIA Aeropolis alongside regional aviation awards and ongoing company expansion across ASEAN.',
+            keywords: ['ADE corporate', 'Asia Digital Engineering', 'corporate milestone', 'aviation awards', 'company expansion']
+          },
+          {
+            id: 'POST-407', entityId: 'ade', entityLabel: 'Asia Digital Engineering (ADE)', platform: 'Threads', pillarCode: 'PIL-04', sentiment: 'Negative',
+            isHighReach: false, viewsCount: 11800, viewsFormatted: '11.8K Views', engagementLabel: '⚠️ Global Parts Lead Time',
+            authorHandle: '@aviation_tech_my', relativeTime: '1 hr ago • Oct 28', minutesAgo: 82,
+            detectedLanguage: 'English', isNonEnglish: false,
+            originalText: 'Global OEM lead times for commercial spare parts and aircraft parts remain tight this week — making ADE’s bonded parts logistics and material management critical to preventing procurement delay.',
+            englishText: 'Global OEM lead times for commercial spare parts and aircraft parts remain tight this week — making ADE’s bonded parts logistics and material management critical to preventing procurement delay.',
+            keywords: ['spare parts', 'aircraft parts', 'ADE', 'parts logistics', 'material management', 'procurement delay']
+          },
+          {
+            id: 'POST-408', entityId: 'ade', entityLabel: 'Asia Digital Engineering (ADE)', platform: 'Reddit', pillarCode: 'PIL-02', sentiment: 'Positive',
+            isHighReach: false, viewsCount: 22000, viewsFormatted: '22K Views', engagementLabel: '🟢 KLIA Aeropolis MRO',
+            authorHandle: 'r/malaysia • u/sepang_aerospace', relativeTime: '6 hrs ago • Oct 28', minutesAgo: 375,
+            detectedLanguage: 'English', isNonEnglish: false,
+            originalText: 'Great to see Malaysia’s aerospace sector growing: Asia Digital Engineering (ADE) continues winning third-party MRO contract work and airline partnership agreements from regional airline customers.',
+            englishText: 'Great to see Malaysia’s aerospace sector growing: Asia Digital Engineering (ADE) continues winning third-party MRO contract work and airline partnership agreements from regional airline customers.',
+            keywords: ['Asia Digital Engineering', 'ADE', 'MRO contract', 'airline partnership', 'airline customers']
+          },
+          {
+            id: 'POST-409', entityId: 'ade', entityLabel: 'Asia Digital Engineering (ADE)', platform: 'XiaoHongShu', pillarCode: 'PIL-03', sentiment: 'Positive',
+            isHighReach: false, viewsCount: 36500, viewsFormatted: '36.5K Views', engagementLabel: '🟢 Smart Hangar Tour',
+            authorHandle: '@大马航空工程日记', relativeTime: '12 hrs ago • Oct 28', minutesAgo: 740,
+            detectedLanguage: '中文 Mandarin (Auto-Detected)', isNonEnglish: true,
+            originalText: '探访吉隆坡雪邦ADE (Asia Digital Engineering) 14线现代化飞机维修机库✈️ 全数字化电子维修记录簿与RedChain智能航材管理软件，代表了东南亚MRO航空维修的最高水准！#航空工程 #飞机维修',
+            englishText: 'Touring the 14-line Asia Digital Engineering (ADE) smart MRO hangar in Sepang ✈️ Full digital logbook and RedChain predictive maintenance software setting the benchmark for aircraft maintenance in Southeast Asia!',
+            keywords: ['Asia Digital Engineering', 'ADE', 'MRO', 'digital logbook', 'RedChain', 'maintenance software', 'aircraft maintenance']
+          },
+
+          // TELEPORT - All 9 Social Channels & 6 Operational Pillars (Current Oct 2026 Live Window)
+          {
+            id: 'POST-501', entityId: 'teleport', entityLabel: 'Teleport', platform: 'Instagram', pillarCode: 'PIL-01', sentiment: 'Positive',
+            isHighReach: true, viewsCount: 78000, viewsFormatted: '78K Views', engagementLabel: '🔥 Freighter Touchdown',
+            authorHandle: '@klia_ramp_spotter', relativeTime: '1 day ago • Oct 27', minutesAgo: 1520,
+            detectedLanguage: 'English', isNonEnglish: false,
+            originalText: 'Early morning arrival at KLIA: Teleport cargo’s Airbus A321F freighter turns around main-deck pallet loads alongside commercial belly cargo space across Southeast Asia. #Teleport #AirCargo',
+            englishText: 'Early morning arrival at KLIA: Teleport cargo’s Airbus A321F freighter turns around main-deck pallet loads alongside commercial belly cargo space across Southeast Asia. #Teleport #AirCargo',
+            keywords: ['Teleport cargo', 'freighter', 'pallet', 'commercial belly', 'cargo space']
+          },
+          {
+            id: 'POST-502', entityId: 'teleport', entityLabel: 'Teleport', platform: 'YouTube', pillarCode: 'PIL-02', sentiment: 'Positive',
+            isHighReach: false, viewsCount: 54000, viewsFormatted: '54K Views', engagementLabel: '🟢 Next-Day Air Delivery',
+            authorHandle: '@asean_supplychain_hub', relativeTime: '2 days ago • Oct 26', minutesAgo: 2580,
+            detectedLanguage: 'English', isNonEnglish: false,
+            originalText: 'Inside Teleport Delivery’s Next-Day ASEAN Express Network — How automated sorting center workflows power 24-hour door-to-door e-commerce parcel drop and live parcel tracking.',
+            englishText: 'Inside Teleport Delivery’s Next-Day ASEAN Express Network — How automated sorting center workflows power 24-hour door-to-door e-commerce parcel drop and live parcel tracking.',
+            keywords: ['Teleport delivery', 'sorting center', 'door-to-door', 'e-commerce parcel', 'parcel drop', 'parcel tracking']
+          },
+          {
+            id: 'POST-503', entityId: 'teleport', entityLabel: 'Teleport', platform: 'TikTok', pillarCode: 'PIL-02', sentiment: 'Positive',
+            isHighReach: true, viewsCount: 112000, viewsFormatted: '112K Views', engagementLabel: '🔥 Next-Day Merchant Vlog',
+            authorHandle: '@seller_diary_my', relativeTime: '1 day ago • Oct 27', minutesAgo: 1710,
+            detectedLanguage: 'Bahasa Melayu (Auto-Detected)', isNonEnglish: true,
+            originalText: 'Macam mana e-commerce parcel kita dari KL boleh sampai Singapura & Kota Kinabalu esok hari? 📦✈️ Kita guna Teleport delivery door-to-door — parcel tracking & transit status pun update real-time! #Teleport',
+            englishText: 'How do our e-commerce parcel shipments from KL reach Singapore & Kota Kinabalu the very next day? 📦✈️ We use Teleport delivery door-to-door — live parcel tracking and transit status update in real time! #Teleport',
+            keywords: ['e-commerce parcel', 'Teleport', 'Teleport delivery', 'door-to-door', 'parcel tracking', 'transit status']
+          },
+          {
+            id: 'POST-504', entityId: 'teleport', entityLabel: 'Teleport', platform: 'XiaoHongShu', pillarCode: 'PIL-03', sentiment: 'Positive',
+            isHighReach: false, viewsCount: 49000, viewsFormatted: '49K Views', engagementLabel: '🟢 Cross-Border Seller Note',
+            authorHandle: '@跨境电商老陈_东南亚', relativeTime: '8 hrs ago • Oct 28', minutesAgo: 480,
+            detectedLanguage: '中文 Mandarin (Auto-Detected)', isNonEnglish: true,
+            originalText: '做东南亚跨境电商物流本周实测：接入Teleport企业物流API后，吉隆坡发新加坡和曼谷的商业快件时效稳了很多，商家客服响应也很快📦✈️ #东南亚跨境电商 #Teleport物流',
+            englishText: 'Southeast Asia cross-border logistics test this week: after connecting Teleport B2B logistics API integration, our business shipping from KL to Singapore and Bangkok is much faster with responsive seller support📦✈️',
+            keywords: ['Teleport', 'B2B logistics', 'API integration', 'business shipping', 'seller support']
+          },
+          {
+            id: 'POST-505', entityId: 'teleport', entityLabel: 'Teleport', platform: 'X', pillarCode: 'PIL-04', sentiment: 'Neutral',
+            isHighReach: false, viewsCount: 19200, viewsFormatted: '19.2K Views', engagementLabel: '🔥 Customs Workflow Watch',
+            authorHandle: '@apac_aircargo_watch', relativeTime: '3 hrs ago • Oct 28', minutesAgo: 195,
+            detectedLanguage: 'English', isNonEnglish: false,
+            originalText: 'Cross-border air freight update: Teleport continues digitizing tax declaration and import clearance pre-filing to minimize airport warehouse hold times across high-volume ASEAN lanes.',
+            englishText: 'Cross-border air freight update: Teleport continues digitizing tax declaration and import clearance pre-filing to minimize airport warehouse hold times across high-volume ASEAN lanes.',
+            keywords: ['Teleport', 'cross-border', 'tax declaration', 'import clearance', 'warehouse hold']
+          },
+          {
+            id: 'POST-506', entityId: 'teleport', entityLabel: 'Teleport', platform: 'Facebook', pillarCode: 'PIL-05', sentiment: 'Positive',
+            isHighReach: false, viewsCount: 41500, viewsFormatted: '41.5K Views', engagementLabel: '🟢 Hub & Volume Surge',
+            authorHandle: '@asean_logistics_daily', relativeTime: '11 hrs ago • Oct 28', minutesAgo: 660,
+            detectedLanguage: 'English', isNonEnglish: false,
+            originalText: 'Teleport AirAsia expands regional network throughput this quarter as automated sorting hub upgrades, expanded warehouse capacity, and courier rider delivery partner integration speed up handoffs.',
+            englishText: 'Teleport AirAsia expands regional network throughput this quarter as automated sorting hub upgrades, expanded warehouse capacity, and courier rider delivery partner integration speed up handoffs.',
+            keywords: ['Teleport AirAsia', 'regional network', 'sorting hub', 'warehouse capacity', 'courier rider', 'delivery partner']
+          },
+          {
+            id: 'POST-507', entityId: 'teleport', entityLabel: 'Teleport', platform: 'Threads', pillarCode: 'PIL-04', sentiment: 'Negative',
+            isHighReach: false, viewsCount: 8900, viewsFormatted: '8.9K Views', engagementLabel: '⚠️ Customs HS Code Check',
+            authorHandle: '@shopify_founder_sg', relativeTime: '54 mins ago • Oct 28', minutesAgo: 54,
+            detectedLanguage: 'English', isNonEnglish: false,
+            originalText: 'Had a 5-hour customs delay and warehouse hold on a batch of cross-border electronics parcels into Jakarta today — make sure your commercial invoice HS code tax declaration matches before dispatch.',
+            englishText: 'Had a 5-hour customs delay and warehouse hold on a batch of cross-border electronics parcels into Jakarta today — make sure your commercial invoice HS code tax declaration matches before dispatch.',
+            keywords: ['customs delay', 'warehouse hold', 'cross-border', 'tax declaration']
+          },
+          {
+            id: 'POST-508', entityId: 'teleport', entityLabel: 'Teleport', platform: 'Reddit', pillarCode: 'PIL-03', sentiment: 'Positive',
+            isHighReach: false, viewsCount: 24000, viewsFormatted: '24K Views', engagementLabel: '🟢 SME B2B Shipping',
+            authorHandle: 'r/malaysia • u/klang_valley_seller', relativeTime: '5 hrs ago • Oct 28', minutesAgo: 315,
+            detectedLanguage: 'English', isNonEnglish: false,
+            originalText: 'Switched our East Malaysia business shipping to Teleport B2B logistics — the Shopify API integration prints airway bills automatically and seller support resolved our pickup query in 10 minutes.',
+            englishText: 'Switched our East Malaysia business shipping to Teleport B2B logistics — the Shopify API integration prints airway bills automatically and seller support resolved our pickup query in 10 minutes.',
+            keywords: ['business shipping', 'Teleport', 'B2B logistics', 'API integration', 'seller support']
+          },
+          {
+            id: 'POST-509', entityId: 'teleport', entityLabel: 'Teleport', platform: 'LinkedIn', pillarCode: 'PIL-06', sentiment: 'Positive',
+            isHighReach: false, viewsCount: 44000, viewsFormatted: '44K Views', engagementLabel: '🟢 Leadership & ESG',
+            authorHandle: 'Pete Chareonwongsak • CEO, Teleport', relativeTime: '9 hrs ago • Oct 28', minutesAgo: 540,
+            detectedLanguage: 'English', isNonEnglish: false,
+            originalText: 'Proud of the Teleport corporate team for achieving a new company milestone in sustainable belly-hold cargo utilization and advancing our ASEAN carbon offset and green logistics ESG goals.',
+            englishText: 'Proud of the Teleport corporate team for achieving a new company milestone in sustainable belly-hold cargo utilization and advancing our ASEAN carbon offset and green logistics ESG goals.',
+            keywords: ['Teleport corporate', 'Pete Chareonwongsak', 'company milestone', 'carbon offset', 'ESG goals']
+          }
+        ];
+
+        var STREAM_HANDLES = {
+          airasia: ['@klia2_commuter', '@bkk_frequent_flyer', '@jkt_skyhopper', '@mnl_wanderer', '@sin_weekend_jet', '@penang_jetsetter', '@kotakinabalu_flyer', '@taipei_wings_tw', '@tokyo_haneda_fan', '@sydney_backpacker', '@sarawak_traveler', '@langkawi_bound'],
+          move: ['@superapp_nomad', '@snap_deal_hunter', '@kl_hotel_reviewer', '@asean_ota_insider', '@concert_hopper_my', '@bigpay_saver', '@bali_resort_seeker', '@ride_commuter_pj', '@move_points_pro', '@phuket_weekender'],
+          santan: ['@nasi_lemak_connoisseur', '@inflight_foodie_sea', '@klia_cafe_hopper', '@halal_eats_my', '@ready_to_eat_fan', '@coffee_capsule_daily', '@b2b_catering_watch', '@pak_nasser_loyalist'],
+          ade: ['@sepang_mro_engineer', '@avionics_tech_sea', '@redchain_ops_lead', '@fleet_reliability_kl', '@hangar14_inspector', '@aerospace_talent_my', '@mro_supplychain_pro', '@airframe_specialist'],
+          teleport: ['@asean_ecom_shipper', '@klia_cargo_ops', '@crossborder_seller_id', '@bkk_parcel_hub', '@manila_freight_desk', '@shopify_merchant_sg', '@airfreight_charter_my', '@lastmile_courier_kl']
+        };
+
+        var STREAM_CONTEXT_TAGS = {
+          airasia: [
+            ' [Flight AK512 • KUL–PEN]', ' [Flight FD302 • DMK–HKT]', ' [Flight QZ7520 • CGK–DPS]', ' [Flight Z2614 • MNL–CEB]',
+            ' [Flight D7236 • KUL–PER]', ' [Flight AK882 • KUL–BKI]', ' [Flight FD251 • DMK–CNX]', ' [Flight D7522 • KUL–HND]',
+            ' [Flight AK703 • KUL–SIN]', ' [Flight QZ264 • SUB–KUL]'
+          ],
+          move: [
+            ' [Order #MV-8841 • KUL–LGK SNAP]', ' [Booking #MV-3920 • Bangkok Hotel]', ' [Move App v8.4 • iOS]', ' [Order #MV-7712 • KLIA2 Airport Ride]',
+            ' [Booking #MV-5104 • Bali Resort Package]', ' [Move Points Tier • Platinum]', ' [Order #MV-6290 • Arena Concert Pass]', ' [Move App v8.4 • Android]'
+          ],
+          santan: [
+            ' [Inflight Menu • AK/D7 Cabin]', ' [Santan Cafe • Mid Valley Megamall]', ' [TikTok Shop Order • Ready-To-Eat Pack]', ' [Santan Retail • KLIA2 Departure Hall]',
+            ' [Shopee Mall Official • Santan Coffee]', ' [Inflight Pre-Book • Pak Nasser Combo]', ' [Santan B2B Catering • Central Kitchen]'
+          ],
+          ade: [
+            ' [Sepang MRO Hangar • Line 7]', ' [RedChain Portal • Build 4.2]', ' [A320neo C-Check • Bay 12]', ' [Senai MRO Facility • Line 2]',
+            ' [ADE Engineering Academy • Batch 18]', ' [Component Workshop • KLIA Aeropolis]'
+          ],
+          teleport: [
+            ' [AWB #TP-90412 • KUL–SIN Express]', ' [Freighter 9M-TLP • ASEAN Cargo Loop]', ' [Sorting Hub • KLIA Cargo Village]', ' [Cross-Border Lane • CGK–KUL]',
+            ' [E-Com Fulfillment • BKK–MNL]', ' [Merchant API v3 • Webhook Sync]'
+          ]
+        };
+
+        var ENTITY_TARGET_STREAM_COUNTS = {
+          airasia:  { today: 28, '7d': 72, '30d': 184 },
+          move:     { today: 24, '7d': 60, '30d': 156 },
+          santan:   { today: 18, '7d': 46, '30d': 118 },
+          ade:      { today: 16, '7d': 38, '30d': 96  },
+          teleport: { today: 20, '7d': 52, '30d': 136 }
+        };
+
+        var MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        function buildDateScaledPosts(dateRangeId, customDays, customEndStr) {
+          var results = [];
+          var spanDays = dateRangeId === 'today' ? 1 : dateRangeId === '7d' ? 7 : dateRangeId === '30d' ? 30 : Math.max(1, customDays || 14);
+          var endRefMs = Date.parse((customEndStr || '2026-10-28') + 'T23:59:00');
+          if (isNaN(endRefMs)) endRefMs = Date.parse('2026-10-28T23:59:00');
+
+          ['airasia', 'move', 'santan', 'ade', 'teleport'].forEach(function (entId) {
+            var seeds = POSTS.filter(function (p) { return p.entityId === entId; });
+            var counts = ENTITY_TARGET_STREAM_COUNTS[entId] || { today: 20, '7d': 50, '30d': 120 };
+            var targetCount = counts[dateRangeId];
+            if (!targetCount) {
+              // custom date range scales proportionally from 7-day baseline
+              targetCount = Math.max(counts.today, Math.round(counts['7d'] * (spanDays / 7)));
+            }
+            var handles = STREAM_HANDLES[entId] || STREAM_HANDLES.airasia;
+            var contexts = STREAM_CONTEXT_TAGS[entId] || STREAM_CONTEXT_TAGS.airasia;
+
+            for (var i = 0; i < targetCount; i++) {
+              var seed = seeds[i % seeds.length];
+              var wave = Math.floor(i / seeds.length);
+              if (wave === 0) {
+                if (dateRangeId === 'today' && seed.minutesAgo >= 1440) {
+                  var todayMins = Math.min(1380, Math.max(360, Math.round(seed.minutesAgo * 0.42)));
+                  var todayHrs = Math.round(todayMins / 60);
+                  results.push(Object.assign({}, seed, {
+                    minutesAgo: todayMins,
+                    relativeTime: todayHrs + ' hrs ago • Oct 28'
+                  }));
+                } else {
+                  results.push(seed);
+                }
+              } else {
+                //Vary views, handle, and context tag so each multi-day stream item is distinct
+                var viewScale = 0.65 + ((i * 37) % 85) / 100;
+                var newViews = Math.max(4200, Math.round((seed.viewsCount * viewScale) / 500) * 500);
+                var newViewsFormatted = newViews >= 1000000
+                  ? (newViews / 1000000).toFixed(1) + 'M Views'
+                  : (newViews >= 10000 ? Math.round(newViews / 1000) + 'K Views' : (newViews / 1000).toFixed(1) + 'K Views');
+                var ctxTag = contexts[(i + wave) % contexts.length];
+                var handle = handles[(i + wave * 3) % handles.length];
+                var highReachFlag = newViews >= 85000;
+
+                // Distribute timestamps realistically across the selected date window and ensure high-reach posts have realistic age
+                var progress = i / Math.max(1, targetCount - 1);
+                var maxMinutes = spanDays * 1440;
+                var minsAgo = Math.max(45, Math.round(progress * maxMinutes * 0.96) + (i * 7) % 45);
+                if (highReachFlag && minsAgo < 480) {
+                  minsAgo = 480 + ((i * 29) % 360);
+                }
+                var postDate = new Date(endRefMs - minsAgo * 60000);
+                var dateLabel = MONTHS_SHORT[postDate.getMonth()] + ' ' + postDate.getDate();
+                var relTime = '';
+                if (minsAgo < 60) {
+                  relTime = minsAgo + ' mins ago • ' + dateLabel;
+                } else if (minsAgo < 1440) {
+                  var hrs = Math.round(minsAgo / 60);
+                  relTime = hrs + (hrs === 1 ? ' hr ago' : ' hrs ago') + ' • ' + dateLabel;
+                } else {
+                  var daysAgo = Math.max(1, Math.floor(minsAgo / 1440));
+                  relTime = daysAgo + (daysAgo === 1 ? ' day ago' : ' days ago') + ' • ' + dateLabel;
+                }
+
+                results.push({
+                  id: seed.id + '-D' + spanDays + '-' + (i + 1),
+                  entityId: seed.entityId,
+                  entityLabel: seed.entityLabel,
+                  platform: seed.platform,
+                  pillarCode: seed.pillarCode,
+                  sentiment: seed.sentiment,
+                  isHighReach: highReachFlag,
+                  viewsCount: newViews,
+                  viewsFormatted: newViewsFormatted,
+                  engagementLabel: highReachFlag ? '🔥 High Engagement' : seed.engagementLabel,
+                  authorHandle: handle,
+                  relativeTime: relTime,
+                  minutesAgo: minsAgo,
+                  detectedLanguage: seed.detectedLanguage,
+                  isNonEnglish: seed.isNonEnglish,
+                  originalText: seed.originalText + ctxTag,
+                  englishText: seed.englishText + ctxTag,
+                  keywords: seed.keywords
+                });
+              }
+            }
+          });
+          return results;
+        }
+
+        var state = {
+          entityId: 'airasia',
+          dateRangeId: '7d',
+          customStart: '2026-10-14',
+          customEnd: '2026-10-27',
+          comparePrior: true,
+          execMode: true,
+          themeMode: 'light',
+          briefingCollapsed: false,
+          streamScope: 'entity', // 'entity' (Active Entity) or 'all' (All 5 Group Entities)
+          streamPillar: 'ALL',
+          streamSentiment: 'ALL',
+          streamPlatform: 'ALL',
+          streamSort: 'impact',
+          feedLimit: 8,
+          showAllFeed: false, // false = show up to state.feedLimit, true = show all matching posts
+          translateAll: false,
+          translatedMap: {},
+          drawerOpen: false,
+          activePostId: null
+        };
+
+        function highlightWords(text, words) {
+          var safe = text;
+          (words || []).forEach(function (w) {
+            var re = new RegExp('(' + w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+            safe = safe.replace(re, '<mark class="bg-[#E11D2B]/20 text-rose-200 px-1.5 py-0.5 rounded border border-[#E11D2B]/40 font-semibold">$1</mark>');
+          });
+          return safe;
+        }
+
+        function renderOriginalPostModal(post, filteredPosts) {
+          if (!post) return '';
+          var views = post.viewsCount || 12400;
+          var likes = Math.max(18, Math.round(views * (post.sentiment === 'Positive' ? 0.054 : 0.036)));
+          var comments = Math.max(6, Math.round(views * (post.sentiment === 'Negative' ? 0.014 : 0.007)));
+          var shares = Math.max(4, Math.round(views * 0.009));
+          var bookmarks = Math.max(3, Math.round(views * 0.0045));
+          var cleanName = (post.authorHandle || '@user').replace(/^[@/]+/, '');
+          var initials = cleanName.slice(0, 2).toUpperCase();
+
+          var idx = filteredPosts.findIndex(function (p) { return p.id === post.id; });
+          var prevPost = idx > 0 ? filteredPosts[idx - 1] : null;
+          var nextPost = idx >= 0 && idx < filteredPosts.length - 1 ? filteredPosts[idx + 1] : null;
+
+          var supportHandles = {
+            airasia: '@AirAsiaSupport (Official Airline Care)',
+            move: '@AirAsiaMOVE (Official Superapp Support)',
+            santan: '@SantanOfficial (Inflight & Retail Team)',
+            ade: '@ADE_Aero (Asia Digital Engineering Comms)',
+            teleport: '@Teleport_Cargo (Logistics Operations Desk)'
+          };
+          var supportAccount = supportHandles[post.entityId] || '@AirAsiaSupport';
+
+          var brandReplyText = post.sentiment === 'Negative'
+            ? 'Hi ' + post.authorHandle + ', thank you for flagging this regarding ' + post.pillarCode + '. Our ' + post.entityLabel + ' operations team has logged this priority case and sent you a direct message to resolve this right away.'
+            : post.sentiment === 'Positive'
+            ? 'Thank you so much for sharing your experience with ' + post.entityLabel + ', ' + post.authorHandle + '! Sending your kind words straight to our ' + post.pillarCode + ' crew. ❤️✈️'
+            : 'Hi ' + post.authorHandle + ', thanks for reaching out about ' + post.entityLabel + ' (' + post.pillarCode + '). Let us know if you need any assistance from our team!';
+
+          var communityReplyAuthor = post.entityId === 'airasia' ? '@klia2_frequentflyer' : post.entityId === 'move' ? '@asean_dealhunter' : post.entityId === 'santan' ? '@foodie_kualalumpur' : post.entityId === 'ade' ? '@mro_aviation_watch' : '@ecom_seller_my';
+          var communityReplyText = post.sentiment === 'Negative'
+            ? 'Same experience on this route earlier this week — glad ' + supportAccount.split(' ')[0] + ' is escalating it.'
+            : 'Totally agree! Been noticing this across ' + post.entityLabel + ' recently too. Super helpful post.';
+
+          var sentClass = post.sentiment === 'Positive'
+            ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40'
+            : post.sentiment === 'Negative'
+            ? 'bg-rose-500/15 text-rose-300 border-rose-500/40'
+            : 'bg-slate-500/15 text-slate-300 border-slate-500/40';
+
+          return '<div id="post-modal-backdrop" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-6 overflow-y-auto" style="z-index: 70;">' +
+            '<div class="w-full max-w-3xl bg-[#0F1520] border border-slate-700 rounded-2xl shadow-2xl overflow-hidden my-auto" onclick="event.stopPropagation()">' +
+              // Top Verified Capture Header Bar
+              '<div class="px-4 py-3 bg-slate-950 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">' +
+                '<div class="flex items-center gap-2 min-w-0 flex-1">' +
+                  '<span class="px-2.5 py-1 rounded-lg bg-[#E11D2B] text-white text-xs font-black shrink-0">' + post.platform + ' VERIFIED CAPTURE</span>' +
+                  '<span class="text-xs text-slate-300 font-semibold truncate">Crawled Social Post • ' + post.entityLabel + ' (' + post.pillarCode + ')</span>' +
+                '</div>' +
+                '<div class="flex items-center gap-2 shrink-0">' +
+                  '<button id="btn-close-post-modal" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-extrabold cursor-pointer">✕ Close</button>' +
+                '</div>' +
+              '</div>' +
+
+              // Main Captured Post Body
+              '<div class="p-5 sm:p-6 space-y-5 max-h-[80vh] overflow-y-auto">' +
+                // Author & Metadata Header
+                '<div class="flex flex-wrap items-start justify-between gap-3">' +
+                  '<div class="flex items-center gap-3">' +
+                    '<div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#E11D2B] to-rose-900 flex items-center justify-center text-white font-black text-base border border-white/15 shrink-0">' +
+                      initials +
+                    '</div>' +
+                    '<div>' +
+                      '<div class="flex items-center gap-2 flex-wrap">' +
+                        '<span class="text-base font-extrabold text-white">' + post.authorHandle + '</span>' +
+                        '<span class="px-2 py-0.5 rounded-full bg-sky-500/15 border border-sky-500/40 text-sky-300 text-[11px] font-bold">✔ Verified Social Capture</span>' +
+                        '<span class="px-2 py-0.5 rounded-full border text-xs font-extrabold ' + sentClass + '">' + post.sentiment + '</span>' +
+                      '</div>' +
+                      '<div class="text-xs text-slate-400 mt-0.5">' +
+                        'Posted <strong class="text-slate-200">' + post.relativeTime + '</strong> on <strong class="text-slate-200">' + post.platform + '</strong> • Entity: <strong class="text-white">' + post.entityLabel + '</strong> • Pillar: <strong class="text-rose-300">' + post.pillarCode + '</strong>' +
+                      '</div>' +
+                    '</div>' +
+                  '</div>' +
+                  '<span class="px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-extrabold">' +
+                    post.engagementLabel + ' • ' + post.viewsFormatted +
+                  '</span>' +
+                '</div>' +
+
+                // Full Original Post Text Box
+                '<div class="bg-slate-950 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-3">' +
+                  '<div class="flex items-center justify-between text-xs text-slate-400">' +
+                    '<span class="font-bold uppercase tracking-wider text-slate-300">Original Post Content (' + post.detectedLanguage + ')</span>' +
+                    '<span class="text-emerald-300 font-semibold">Post ID: ' + post.id.toUpperCase() + '</span>' +
+                  '</div>' +
+                  '<p class="text-sm sm:text-base text-white leading-relaxed font-medium">' +
+                    highlightWords(post.originalText, post.keywords) +
+                  '</p>' +
+                  '<div class="flex flex-wrap items-center gap-1.5 pt-2">' +
+                    '<span class="text-xs text-slate-400 mr-1">Matched NLP Keywords:</span>' +
+                    (post.keywords || []).map(function (kw) {
+                      return '<span class="px-2 py-0.5 rounded-md bg-[#E11D2B]/15 border border-[#E11D2B]/40 text-rose-300 text-xs font-bold">#' + kw + '</span>';
+                    }).join('') +
+                  '</div>' +
+                '</div>' +
+
+                // Automatic Side-by-Side English Translation (if non-English)
+                (post.isNonEnglish ? (
+                  '<div class="bg-slate-900/95 border border-sky-500/40 rounded-2xl p-4 space-y-2">' +
+                    '<div class="flex items-center justify-between text-xs">' +
+                      '<span class="font-extrabold text-sky-300">🌐 Verified English Translation (Neural NLP Pipeline)</span>' +
+                      '<span class="text-slate-400">Translated from ' + post.detectedLanguage + '</span>' +
+                    '</div>' +
+                    '<p class="text-sm text-slate-100 leading-relaxed">' +
+                      highlightWords(post.englishText, post.keywords) +
+                    '</p>' +
+                  '</div>'
+                ) : '') +
+
+                // Native Engagement Metrics Bar
+                '<div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5">' +
+                  '<div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 text-center">' +
+                    '<div class="text-xs text-slate-400 font-semibold">👁️ Views</div>' +
+                    '<div class="text-sm sm:text-base font-black text-white mt-0.5">' + views.toLocaleString() + '</div>' +
+                  '</div>' +
+                  '<div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 text-center">' +
+                    '<div class="text-xs text-slate-400 font-semibold">❤️ Likes</div>' +
+                    '<div class="text-sm sm:text-base font-black text-rose-300 mt-0.5">' + likes.toLocaleString() + '</div>' +
+                  '</div>' +
+                  '<div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 text-center">' +
+                    '<div class="text-xs text-slate-400 font-semibold">💬 Replies</div>' +
+                    '<div class="text-sm sm:text-base font-black text-sky-300 mt-0.5">' + comments.toLocaleString() + '</div>' +
+                  '</div>' +
+                  '<div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 text-center">' +
+                    '<div class="text-xs text-slate-400 font-semibold">🔁 Shares</div>' +
+                    '<div class="text-sm sm:text-base font-black text-emerald-300 mt-0.5">' + shares.toLocaleString() + '</div>' +
+                  '</div>' +
+                  '<div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 text-center col-span-2 sm:col-span-1">' +
+                    '<div class="text-xs text-slate-400 font-semibold">🔖 Saves</div>' +
+                    '<div class="text-sm sm:text-base font-black text-amber-300 mt-0.5">' + bookmarks.toLocaleString() + '</div>' +
+                  '</div>' +
+                '</div>' +
+
+                // Captured Conversation Thread / Replies
+                '<div class="bg-slate-950/90 border border-slate-800 rounded-2xl p-4 space-y-3">' +
+                  '<div class="flex items-center justify-between text-xs">' +
+                    '<span class="font-extrabold text-white uppercase tracking-wider">💬 Captured Post Thread &amp; Brand Response (' + comments.toLocaleString() + ' Replies)</span>' +
+                    '<span class="text-slate-400">Live Thread Snapshot</span>' +
+                  '</div>' +
+                  '<div class="space-y-2.5">' +
+                    '<div class="bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs space-y-1">' +
+                      '<div class="flex items-center justify-between">' +
+                        '<strong class="text-emerald-300">' + supportAccount + ' ✔</strong>' +
+                        '<span class="text-slate-400">Official Brand Response</span>' +
+                      '</div>' +
+                      '<p class="text-slate-200 leading-relaxed">' + brandReplyText + '</p>' +
+                    '</div>' +
+                    '<div class="bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs space-y-1">' +
+                      '<div class="flex items-center justify-between">' +
+                        '<strong class="text-sky-300">' + communityReplyAuthor + '</strong>' +
+                        '<span class="text-slate-400">Top Community Reply</span>' +
+                      '</div>' +
+                      '<p class="text-slate-200 leading-relaxed">' + communityReplyText + '</p>' +
+                    '</div>' +
+                  '</div>' +
+                '</div>' +
+              '</div>' +
+
+              // Modal Footer: Prev/Next Navigation + Done
+              '<div class="px-5 py-3.5 bg-slate-950 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">' +
+                '<div class="flex items-center gap-2">' +
+                  '<button id="btn-prev-post" ' + (prevPost ? 'data-open-post="' + prevPost.id + '"' : 'disabled') + ' class="px-3 py-1.5 rounded-xl border text-xs font-extrabold ' + (prevPost ? 'bg-slate-900 hover:bg-slate-800 border-slate-700 text-white cursor-pointer' : 'bg-slate-900/40 border-slate-800 text-slate-500 cursor-not-allowed') + '">⬅ Previous Post</button>' +
+                  '<span class="text-xs text-slate-400 font-bold">Post ' + (idx >= 0 ? idx + 1 : 1) + ' of ' + filteredPosts.length + '</span>' +
+                  '<button id="btn-next-post" ' + (nextPost ? 'data-open-post="' + nextPost.id + '"' : 'disabled') + ' class="px-3 py-1.5 rounded-xl border text-xs font-extrabold ' + (nextPost ? 'bg-slate-900 hover:bg-slate-800 border-slate-700 text-white cursor-pointer' : 'bg-slate-900/40 border-slate-800 text-slate-500 cursor-not-allowed') + '">Next Post ➡</button>' +
+                '</div>' +
+                '<div class="flex items-center gap-2">' +
+                  '<button id="btn-close-post-modal-bottom" class="px-4 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-extrabold cursor-pointer">Done</button>' +
+                '</div>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+        }
+
+        function renderPostCard(post) {
+          var isTranslated = !!(state.translateAll || state.translatedMap[post.id]);
+          var textToShow = isTranslated ? post.englishText : post.originalText;
+          var sentClass = post.sentiment === 'Positive'
+            ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40'
+            : post.sentiment === 'Negative'
+            ? 'bg-rose-500/15 text-rose-300 border-rose-500/40'
+            : 'bg-slate-500/15 text-slate-300 border-slate-500/40';
+
+          return '<article class="bg-slate-900/95 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between gap-3">' +
+            '<div class="space-y-2.5">' +
+              '<div class="flex flex-wrap items-center justify-between gap-2 text-xs">' +
+                '<div class="flex items-center gap-2"><span class="px-2 py-0.5 rounded bg-slate-800 font-bold text-sky-300">' + post.platform + '</span><strong class="text-white">' + post.authorHandle + '</strong><span class="text-slate-400">• ' + post.relativeTime + '</span></div>' +
+                '<div class="flex items-center gap-1.5"><span class="px-2 py-0.5 rounded-full border font-extrabold ' + sentClass + '">' + post.sentiment + '</span><span class="px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300 font-extrabold">' + post.engagementLabel + ' • ' + post.viewsFormatted + '</span></div>' +
+              '</div>' +
+              '<div class="flex flex-wrap items-center justify-between gap-2 text-xs bg-slate-950/90 px-3 py-1.5 rounded-xl border border-slate-800">' +
+                '<span class="text-slate-300">Entity: <strong class="text-white">' + post.entityLabel + '</strong> • Pillar: <strong class="text-rose-300">' + post.pillarCode + '</strong> • Lang: <span class="text-sky-300">' + post.detectedLanguage + '</span></span>' +
+                (post.isNonEnglish ? '<button data-translate="' + post.id + '" class="px-2.5 py-0.5 rounded-lg bg-sky-500/20 border border-sky-500/40 text-sky-200 font-bold cursor-pointer">🌐 ' + (isTranslated ? 'Showing English (View Original)' : 'Translate to English') + '</button>' : '') +
+              '</div>' +
+              '<p class="text-xs sm:text-sm text-slate-100 leading-relaxed bg-slate-950/60 p-3 rounded-xl border border-slate-800">' + highlightWords(textToShow, post.keywords) + '</p>' +
+            '</div>' +
+            '<div class="pt-2 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs">' +
+              '<span class="text-emerald-300 font-semibold">✔ Disambiguated &amp; Verified</span>' +
+              '<div class="flex items-center gap-2">' +
+                '<button type="button" data-open-post="' + post.id + '" class="px-3 py-1.5 rounded-xl bg-[#E11D2B] hover:bg-rose-600 text-white font-extrabold cursor-pointer shadow">View Original Post</button>' +
+              '</div>' +
+            '</div>' +
+          '</article>';
+        }
+
+        function render() {
+          var base = ENTITY_BASE[state.entityId] || ENTITY_BASE.airasia;
+          var dr = DATE_RANGES.find(function (d) { return d.id === state.dateRangeId; }) || DATE_RANGES[1];
+          var startMs = Date.parse(state.customStart);
+          var endMs = Date.parse(state.customEnd);
+          var customDays = 14;
+          if (!isNaN(startMs) && !isNaN(endMs)) {
+            customDays = Math.max(1, Math.round(Math.abs(endMs - startMs) / 86400000) + 1);
+          }
+          var factor = state.dateRangeId === 'custom' ? Math.max(0.16, +(customDays / 7).toFixed(2)) : dr.multiplier;
+          var activeWindowText = state.dateRangeId === 'custom'
+            ? state.customStart + ' to ' + state.customEnd + ' (' + customDays + (customDays === 1 ? ' Day' : ' Days') + ' Custom Scope)'
+            : dr.windowText;
+          var rule = DISAMBIGUATION_RULES[state.entityId] || DISAMBIGUATION_RULES.airasia;
+          var activeEntityMeta = ENTITIES.find(function (e) { return e.id === state.entityId; }) || ENTITIES[0];
+          var activePillarMatrix = ENTITY_PILLAR_MATRICES[state.entityId] || ENTITY_PILLAR_MATRICES.airasia;
+          var isLight = state.themeMode === 'light';
+
+          if (isLight) {
+            document.body.classList.add('theme-light');
+          } else {
+            document.body.classList.remove('theme-light');
+          }
+
+          var pillars = base.pillars.map(function (p, idx) {
+            var v = Math.max(1, Math.round(p.volume * factor));
+            var pos = Math.max(0, Math.round(p.positive * factor));
+            var neg = Math.max(0, Math.round(p.negative * factor));
+            var matrixDef = activePillarMatrix[idx] || {};
+            return {
+              code: p.code,
+              domain: p.domain,
+              sub: p.sub,
+              keywords: matrixDef.keywords || [],
+              volume: v,
+              positive: pos,
+              negative: neg,
+              delta: p.delta,
+              risk: p.risk
+            };
+          });
+
+          var totalVol = pillars.reduce(function (a, b) { return a + b.volume; }, 0);
+          var totalPos = pillars.reduce(function (a, b) { return a + b.positive; }, 0);
+          var totalNeg = pillars.reduce(function (a, b) { return a + b.negative; }, 0);
+          var totalNeu = Math.max(0, totalVol - totalPos - totalNeg);
+
+          var posPct = Math.round((totalPos / totalVol) * 100);
+          var negPct = Math.round((totalNeg / totalVol) * 100);
+          var neuPct = Math.max(0, 100 - posPct - negPct);
+          var nss = (((totalPos - totalNeg) / totalVol) * 100).toFixed(1);
+          var nssFormatted = (nss >= 0 ? '+' : '') + nss + '%';
+
+          var highReach = state.dateRangeId === '7d' ? base.kpis.highReach : Math.max(0, Math.round(base.kpis.highReach * factor));
+          var viewsRaw = Math.round(base.kpis.views * factor);
+          var viewsFormatted = viewsRaw >= 1000000 ? (viewsRaw / 1000000).toFixed(1) + 'M Views' : Math.round(viewsRaw / 1000) + 'K Views';
+
+          var activeDatePosts = buildDateScaledPosts(state.dateRangeId, customDays, state.customEnd);
+
+          var filteredPosts = activeDatePosts.filter(function (p) {
+            if (state.streamScope === 'entity' && p.entityId !== state.entityId) return false;
+            if (state.streamPillar !== 'ALL' && p.pillarCode !== state.streamPillar) return false;
+            if (state.streamSentiment !== 'ALL' && p.sentiment !== state.streamSentiment) return false;
+            if (state.streamPlatform !== 'ALL' && p.platform !== state.streamPlatform) return false;
+            return true;
+          }).sort(function (a, b) {
+            if (state.streamSort === 'impact') {
+              if (a.isHighReach !== b.isHighReach) return a.isHighReach ? -1 : 1;
+              return b.viewsCount - a.viewsCount;
+            }
+            return a.minutesAgo - b.minutesAgo;
+          });
+
+          var currentLimit = state.feedLimit || 8;
+          var visiblePosts = state.showAllFeed ? filteredPosts : filteredPosts.slice(0, currentLimit);
+          var hiddenCount = Math.max(0, filteredPosts.length - visiblePosts.length);
+          var allEntityTotalCount = activeDatePosts.length;
+          var currentEntityTotalCount = activeDatePosts.filter(function (p) { return p.entityId === state.entityId; }).length;
+          var ALL_PLATFORMS = ['X', 'TikTok', 'Facebook', 'Instagram', 'Threads', 'XiaoHongShu', 'Reddit', 'YouTube', 'LinkedIn'];
+
+          var root = document.getElementById('root');
+          root.innerHTML =
+            '<div class="h-1.5 w-full bg-gradient-to-r from-[#E11D2B] via-orange-500 to-rose-600"></div>' +
+            '<div class="max-w-[1520px] mx-auto px-4 sm:px-6 py-5 space-y-5">' +
+              // HEADER
+              '<header class="bg-[#0F1520] border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-4">' +
+                '<div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">' +
+                  '<div class="flex items-center gap-3.5">' +
+                    '<div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#E11D2B] to-rose-900 flex flex-col items-center justify-center font-black text-white text-xs border border-white/15 shrink-0"><span>AirAsia</span><span class="text-[10px] opacity-90 mt-0.5">Next</span></div>' +
+                    '<div>' +
+                      '<div class="flex flex-wrap items-center gap-2">' +
+                        '<span class="px-2.5 py-0.5 rounded-full bg-[#E11D2B]/15 border border-[#E11D2B]/40 text-rose-300 text-xs font-extrabold uppercase">Real-Time Social Listening &amp; Brand Health</span>' +
+                        '<span class="text-xs text-slate-400">Active Scope: <strong class="text-slate-200">' + activeWindowText + '</strong></span>' +
+                      '</div>' +
+                      '<h1 class="text-xl sm:text-2xl font-extrabold text-white mt-1">Social Listening &amp; Brand Health Dashboard</h1>' +
+                    '</div>' +
+                  '</div>' +
+                  '<div class="flex flex-wrap items-center gap-2.5">' +
+                    '<button id="btn-theme-mode" class="px-3.5 py-2 rounded-xl border bg-slate-900 border-slate-700 text-white text-xs font-extrabold inline-flex items-center gap-2">' +
+                      '<span>' + (isLight ? '🌙 Dark Mode' : '☀️ Light Mode') + '</span>' +
+                    '</button>' +
+                    '<button id="btn-exec" class="px-3.5 py-2 rounded-xl border text-xs font-extrabold ' + (state.execMode ? 'bg-[#E11D2B]/15 border-[#E11D2B]/50 text-rose-200' : 'bg-slate-900 border-slate-800 text-slate-400') + '">Executive Mode ("Jargon-Free View"): ' + (state.execMode ? 'ON' : 'OFF') + '</button>' +
+                  '</div>' +
+                '</div>' +
+                // ENTITY & DATE CONTROLS
+                '<div class="pt-3.5 border-t border-slate-800 flex flex-col xl:flex-row xl:items-center justify-between gap-4">' +
+                  '<div class="flex flex-wrap items-center gap-1.5">' +
+                    ENTITIES.map(function (ent) {
+                      var active = state.entityId === ent.id;
+                      return '<button data-entity="' + ent.id + '" class="px-3 py-1.5 rounded-xl text-xs font-extrabold border transition-all inline-flex items-center gap-2 ' + (active ? 'bg-[#E11D2B] text-white border-rose-400 shadow-lg' : 'bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-800') + '">' +
+                        '<span class="w-2 h-2 rounded-full" style="background-color:' + (active ? '#FFFFFF' : ent.accent) + '"></span>' +
+                        '<span>' + ent.name + '</span>' +
+                        '<span class="px-1.5 py-0.5 rounded text-[10px] font-black ' + (active ? 'bg-black/30 text-white' : 'bg-slate-800 text-slate-400') + '">' + ent.pillarCount + ' Pillars</span>' +
+                      '</button>';
+                    }).join('') +
+                  '</div>' +
+                  '<div class="flex flex-col items-start xl:items-end gap-2">' +
+                    '<div class="flex flex-wrap items-center gap-1.5">' +
+                      DATE_RANGES.map(function (d) {
+                        var active = state.dateRangeId === d.id;
+                        return '<button data-date="' + d.id + '" class="px-3 py-1.5 rounded-xl text-xs font-extrabold border transition-all ' + (active ? 'bg-[#E11D2B] text-white border-rose-400 shadow-lg' : 'bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-800') + '">' + d.label + '</button>';
+                      }).join('') +
+                    '</div>' +
+                  '</div>' +
+                '</div>' +
+                // DISAMBIGUATION BANNER
+                '<div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5 flex flex-col lg:flex-row lg:items-center justify-between gap-3 text-xs">' +
+                  '<div><span class="px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 font-extrabold mr-2">🛡️ Strict NLP Disambiguation</span><strong class="text-white">' + rule.name + ' (' + activeEntityMeta.pillarCount + ' Dynamic Pillars):</strong> <span class="text-slate-300">' + rule.summary + '</span></div>' +
+                  '<div class="flex items-center gap-2 shrink-0"><span class="px-2 py-1 rounded bg-slate-800 text-rose-300 font-bold">Noise Blocked: ' + rule.blocked.toLocaleString() + '</span><span class="px-2 py-1 rounded bg-slate-800 text-emerald-300 font-bold">Purity: ' + rule.purity + '</span></div>' +
+                '</div>' +
+              '</header>' +
+
+              // ROW 0: 30-SECOND EXECUTIVE BRIEFING
+              '<section class="bg-gradient-to-r from-[#131B2E] via-[#0F1520] to-[#161324] border border-slate-800 rounded-2xl p-5 shadow-xl">' +
+                '<div class="flex items-center justify-between gap-3">' +
+                  '<div class="flex flex-wrap items-center gap-2.5">' +
+                    '<span class="px-2.5 py-1 rounded-lg bg-[#E11D2B] text-white text-xs font-extrabold uppercase">⚡ 30-Second Executive Briefing</span>' +
+                    '<span class="text-sm font-extrabold text-white">' + activeEntityMeta.name + ' • ' + activeWindowText + '</span>' +
+                    '<span class="px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs font-extrabold">' + base.briefing.pill + (state.execMode ? ' • Status: ' + base.briefing.execStatus : '') + '</span>' +
+                  '</div>' +
+                  '<button id="btn-briefing" class="px-3 py-1 rounded-lg bg-slate-900 text-slate-300 border border-slate-700 text-xs font-bold">' + (state.briefingCollapsed ? 'Expand Briefing ▼' : 'Collapse Briefing ▲') + '</button>' +
+                '</div>' +
+                (!state.briefingCollapsed ? (
+                  '<div class="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-3.5 text-xs sm:text-sm">' +
+                    '<div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3.5"><div class="text-xs font-extrabold uppercase text-sky-400 mb-1">1. What\'s Happening</div><p class="text-slate-200">' + base.briefing.b1 + '</p></div>' +
+                    '<div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3.5"><div class="text-xs font-extrabold uppercase text-amber-400 mb-1">2. Primary Driver</div><p class="text-slate-200">' + base.briefing.b2 + '</p></div>' +
+                    '<div class="bg-slate-950/80 border border-emerald-500/30 rounded-xl p-3.5"><div class="text-xs font-extrabold uppercase text-emerald-400 mb-1">3. Recommended Executive Action</div><p class="text-slate-100 font-medium">' + base.briefing.b3 + '</p></div>' +
+                  '</div>'
+                ) : '') +
+              '</section>' +
+
+              // ROW 1: 5 KPI CARDS
+              '<section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">' +
+                '<div class="bg-[#0F1520] border border-slate-800 border-t-4 border-t-sky-500 rounded-2xl p-4 shadow-xl flex flex-col justify-between">' +
+                  '<div class="flex items-center justify-between"><span class="text-xs font-extrabold uppercase text-slate-400">1. Total Volume Tracked</span><span title="Total unique customer posts and comments about this brand after removing duplicates and spam." class="px-2 py-0.5 rounded-full bg-slate-800 text-slate-200 text-xs font-bold cursor-help">ⓘ</span></div>' +
+                  '<div class="my-3 flex items-baseline gap-2 flex-wrap"><span class="text-3xl font-black text-white">' + totalVol.toLocaleString() + '</span>' + (state.comparePrior ? '<span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 text-xs font-extrabold">▲ +' + base.kpis.volTrend + '% vs. prior period</span>' : '') + '</div>' +
+                  '<div class="pt-2 border-t border-slate-800 text-xs text-slate-300 font-semibold">Summed across 2 tabs (deduplicated)</div>' +
+                '</div>' +
+                '<div class="bg-[#0F1520] border border-slate-800 border-t-4 border-t-emerald-500 rounded-2xl p-4 shadow-xl flex flex-col justify-between">' +
+                  '<div class="flex items-center justify-between"><span class="text-xs font-extrabold uppercase text-slate-400">2. Positive Mentions</span><span title="Posts praising service, promotions, or brand experience." class="px-2 py-0.5 rounded-full bg-slate-800 text-slate-200 text-xs font-bold cursor-help">ⓘ</span></div>' +
+                  '<div class="my-3 flex items-baseline gap-2 flex-wrap"><span class="text-3xl font-black text-emerald-400">' + totalPos.toLocaleString() + '</span>' + (state.comparePrior ? '<span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 text-xs font-extrabold">▲ +' + base.kpis.posTrend + '%</span>' : '') + '</div>' +
+                  '<div class="pt-2 border-t border-slate-800 text-xs text-emerald-300 font-semibold">' + posPct + '% of active date scope | ▲ +' + base.kpis.posTrend + '%</div>' +
+                '</div>' +
+                '<div class="bg-[#0F1520] border border-slate-800 border-t-4 border-t-rose-500 rounded-2xl p-4 shadow-xl flex flex-col justify-between">' +
+                  '<div class="flex items-center justify-between"><span class="text-xs font-extrabold uppercase text-slate-400">3. Negative Mentions</span><span title="Customer complaints, service frustrations, or unresolved issues." class="px-2 py-0.5 rounded-full bg-slate-800 text-slate-200 text-xs font-bold cursor-help">ⓘ</span></div>' +
+                  '<div class="my-3 flex items-baseline gap-2 flex-wrap"><span class="text-3xl font-black text-rose-400">' + totalNeg.toLocaleString() + '</span>' + (state.comparePrior ? '<span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 text-xs font-extrabold">▼ ' + base.kpis.negTrend + '%</span>' : '') + '</div>' +
+                  '<div class="pt-2 border-t border-slate-800 text-xs text-rose-300 font-semibold">' + negPct + '% escalations &amp; complaints | ▼ ' + base.kpis.negTrend + '%</div>' +
+                '</div>' +
+                '<div class="bg-[#0F1520] border border-slate-800 border-t-4 border-t-indigo-500 rounded-2xl p-4 shadow-xl flex flex-col justify-between">' +
+                  '<div class="flex items-center justify-between"><span class="text-xs font-extrabold uppercase text-slate-400">4. Net Sentiment Score (NSS)</span><span title="Customer Satisfaction Balance: Ranges from -100% to +100%. Above 0% means positive posts outweigh complaints." class="px-2 py-0.5 rounded-full bg-slate-800 text-slate-200 text-xs font-bold cursor-help">ⓘ</span></div>' +
+                  '<div class="my-3 flex items-baseline gap-2 flex-wrap"><span class="text-3xl font-black text-emerald-400">' + nssFormatted + '</span><span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-xs font-extrabold text-white">' + (nss >= 0 ? '🟢 Positive Balance' : '🟡 Watch Balance') + '</span></div>' +
+                  '<div class="pt-2 border-t border-slate-800 text-xs text-slate-300 font-semibold">Computed as (Pos - Neg) / Total Volume</div>' +
+                '</div>' +
+                '<div class="bg-[#0F1520] border border-slate-800 border-t-4 border-t-amber-500 rounded-2xl p-4 shadow-xl flex flex-col justify-between">' +
+                  '<div class="flex items-center justify-between"><span class="text-xs font-extrabold uppercase text-amber-300">5. High-Reach / Virality Risk</span><span title="Flags complaints gaining rapid public traction (high views/shares) so leadership knows if an issue is going viral." class="px-2 py-0.5 rounded-full bg-slate-800 text-slate-200 text-xs font-bold cursor-help">ⓘ</span></div>' +
+                  '<div class="my-3"><div class="text-2xl font-black text-white">' + highReach + ' High-Reach Posts • ' + viewsFormatted + '</div><div class="text-xs font-extrabold text-amber-300 mt-1">🔥 ▼ ' + base.kpis.reachTrend + '% vs. prior period</div></div>' +
+                  '<div class="pt-2 border-t border-slate-800 text-xs text-slate-300 font-semibold">Negative posts exceeding engagement threshold</div>' +
+                '</div>' +
+              '</section>' +
+
+              // ROW 2: SENTIMENT RATIO & PLATFORM BREAKDOWN
+              '<section class="grid grid-cols-1 lg:grid-cols-12 gap-5">' +
+                '<div class="lg:col-span-7 bg-[#0F1520] border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col justify-between">' +
+                  '<div>' +
+                    '<h2 class="text-lg font-extrabold text-white">Sentiment Ratio &amp; Listening Distribution</h2>' +
+                    '<p class="text-xs text-slate-300 mt-0.5">Real-time breakdown across <strong class="text-white">' + totalVol.toLocaleString() + '</strong> deduplicated customer messages</p>' +
+                    '<p class="text-xs text-slate-400 mt-1">ℹ️ Note: Neutral (' + neuPct + '%) mostly represents normal customer enquiries/questions.</p>' +
+                    '<div class="mt-6 h-11 w-full rounded-xl overflow-hidden flex border border-slate-700">' +
+                      '<div style="width:' + posPct + '%" class="h-full bg-emerald-500 text-slate-950 font-extrabold text-xs flex items-center justify-center whitespace-nowrap px-2">Positive: ' + posPct + '% (' + totalPos.toLocaleString() + ')</div>' +
+                      '<div style="width:' + neuPct + '%" class="h-full bg-slate-600 text-white font-extrabold text-xs flex items-center justify-center whitespace-nowrap px-2">Neutral: ' + neuPct + '% (' + totalNeu.toLocaleString() + ')</div>' +
+                      '<div style="width:' + negPct + '%" class="h-full bg-rose-500 text-white font-extrabold text-xs flex items-center justify-center whitespace-nowrap px-2">Negative: ' + negPct + '% (' + totalNeg.toLocaleString() + ')</div>' +
+                    '</div>' +
+                  '</div>' +
+                  '<div class="mt-4 pt-3 border-t border-slate-800 text-xs text-slate-400 flex justify-between"><span>Net Balance: <strong class="text-white">' + totalPos.toLocaleString() + ' Positive vs. ' + totalNeg.toLocaleString() + ' Negative (' + nssFormatted + ' NSS)</strong></span><span>9 Global Platforms</span></div>' +
+                '</div>' +
+                '<div class="lg:col-span-5 bg-[#0F1520] border border-slate-800 rounded-2xl p-5 shadow-xl space-y-2">' +
+                  '<h2 class="text-lg font-extrabold text-white">Platform Share of Voice Mini-Bar</h2>' +
+                  base.platforms.map(function (pl) {
+                    var v = Math.max(1, Math.round(pl.volume * factor));
+                    var neg = Math.max(0, Math.round(pl.negative * factor));
+                    var pos = Math.max(0, Math.round(pl.positive * factor));
+                    var pShare = Math.round((v / totalVol) * 100);
+                    var pNeg = Math.round((neg / v) * 100);
+                    var pPos = Math.round((pos / v) * 100);
+                    return '<div class="p-2 rounded-xl bg-slate-950/70 border border-slate-800 text-xs">' +
+                      '<div class="flex justify-between font-bold text-white mb-1"><span>' + pl.id + ' (' + pShare + '%)</span><span>' + v.toLocaleString() + ' • <span class="text-rose-300">' + pNeg + '% Neg</span></span></div>' +
+                      '<div class="w-full h-2 rounded-full bg-slate-900 overflow-hidden flex"><div style="width:' + pPos + '%" class="bg-emerald-500"></div><div style="width:' + Math.max(0, 100 - pPos - pNeg) + '%" class="bg-slate-600"></div><div style="width:' + pNeg + '%" class="bg-rose-500"></div></div>' +
+                    '</div>';
+                  }).join('') +
+                '</div>' +
+              '</section>' +
+
+              // ROW 3: STRATEGIC OPERATIONAL PILLARS (EXECUTIVE TABLE)
+              '<section class="bg-[#0F1520] border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-4">' +
+                '<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">' +
+                  '<div>' +
+                    '<div class="flex flex-wrap items-center gap-2">' +
+                      '<h2 class="text-lg font-extrabold text-white">Strategic Operational Pillars (Executive Table)</h2>' +
+                      '<span class="px-2.5 py-0.5 rounded-full bg-[#E11D2B]/15 border border-[#E11D2B]/40 text-rose-300 text-xs font-extrabold">' + activeEntityMeta.name + ' • ' + pillars.length + ' Pillars Active</span>' +
+                    '</div>' +
+                    '<p class="text-xs text-slate-400">Aggregated live from both tabs for the selected date range. Automatically mapped to the selected entity. (' + dr.windowText + ')</p>' +
+                  '</div>' +
+                  '<div class="text-xs text-slate-300">🟢 &lt;15% Neg (Healthy) • 🟡 15–21% Neg (Monitor) • 🔴 ≥22% Neg (Action Required)</div>' +
+                '</div>' +
+                '<div class="overflow-x-auto rounded-xl border border-slate-800">' +
+                  '<table class="w-full text-left border-collapse text-xs sm:text-sm">' +
+                    '<thead><tr class="bg-slate-950 text-slate-400 text-xs font-extrabold uppercase border-b border-slate-800"><th class="py-3 px-3.5">PILLAR CODE</th><th class="py-3 px-3.5">OPERATIONAL DOMAIN</th><th class="py-3 px-3.5">VOLUME</th><th class="py-3 px-3.5">POSITIVE VOLUME</th><th class="py-3 px-3.5">NEGATIVE VOLUME</th><th class="py-3 px-3.5">NEGATIVE %</th><th class="py-3 px-3.5">VIRALITY RISK</th><th class="py-3 px-3.5 text-right">ACTION</th></tr></thead>' +
+                    '<tbody class="divide-y divide-slate-800">' +
+                      pillars.map(function (p) {
+                        var pShare = ((p.volume / totalVol) * 100).toFixed(1);
+                        var pNegPct = ((p.negative / p.volume) * 100).toFixed(1);
+                        var dot = pNegPct >= 22 ? '🔴' : pNegPct >= 15 ? '🟡' : '🟢';
+                        var riskClass = p.risk === 'High' ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' : p.risk === 'Moderate' ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
+                        return '<tr class="bg-slate-900/50 hover:bg-slate-900">' +
+                          '<td class="py-3.5 px-3.5 font-black"><span class="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-700 text-rose-300 text-xs font-extrabold">' + p.code + '</span></td>' +
+                          '<td class="py-3.5 px-3.5"><div class="font-extrabold text-white">' + p.domain + '</div><div class="text-xs text-slate-400 mt-0.5">' + p.sub + '</div></td>' +
+                          '<td class="py-3.5 px-3.5"><div class="font-black text-white">' + p.volume.toLocaleString() + '</div><div class="text-xs text-slate-400">' + pShare + '% share of total</div></td>' +
+                          '<td class="py-3.5 px-3.5 font-extrabold text-emerald-400">' + p.positive.toLocaleString() + '</td>' +
+                          '<td class="py-3.5 px-3.5 font-extrabold text-rose-400">' + p.negative.toLocaleString() + '</td>' +
+                          '<td class="py-3.5 px-3.5 font-black text-white">' + dot + ' ' + pNegPct + '% ' + (state.comparePrior ? '<span class="text-xs font-bold px-1.5 py-0.5 rounded bg-slate-800 ml-1">' + (p.delta <= 0 ? '▼ ' + p.delta : '▲ +' + p.delta) + '% vs. prior</span>' : '') + '</td>' +
+                          '<td class="py-3.5 px-3.5"><span class="px-2.5 py-1 rounded-full border text-xs font-extrabold ' + riskClass + '">' + p.risk + '</span></td>' +
+                          '<td class="py-3.5 px-3.5 text-right"><button data-pillar="' + p.code + '" class="px-3 py-1.5 rounded-xl bg-[#E11D2B] hover:bg-rose-600 text-white text-xs font-extrabold">View Stream</button></td>' +
+                        '</tr>';
+                      }).join('') +
+                    '</tbody>' +
+                  '</table>' +
+                '</div>' +
+              '</section>' +
+
+              // SECTION 4: INTERACTIVE LIVE SOCIAL FEED PANEL (THE "STREAM")
+              '<section id="live-stream-section" class="bg-[#0F1520] border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-4">' +
+                '<div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3 pb-3 border-b border-slate-800">' +
+                  '<div>' +
+                    '<div class="flex flex-wrap items-center gap-2">' +
+                      '<span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>' +
+                      '<h2 class="text-lg font-extrabold text-white">Interactive Live Social Feed Panel (The "Stream") — ' + (state.streamScope === 'all' ? 'All 5 Group Entities (' + allEntityTotalCount + ' Stream Posts)' : activeEntityMeta.name + ' (' + currentEntityTotalCount + ' Stream Posts)') + '</h2>' +
+                      '<span class="px-2.5 py-0.5 rounded-full bg-slate-900 border border-slate-700 text-xs font-extrabold text-sky-300">Showing ' + visiblePosts.length + ' of ' + filteredPosts.length + ' Matching Posts</span>' +
+                      '<span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/40 text-xs font-extrabold text-emerald-300">' + totalVol.toLocaleString() + ' Total Ingested Mentions (' + dr.label + ')</span>' +
+                    '</div>' +
+                    '<p class="text-xs text-slate-400 mt-1">Active Window: <strong class="text-slate-200">' + activeWindowText + '</strong> • Sorted by ' + (state.streamSort === 'impact' ? 'Highest Impact / Virality First (Default)' : 'Most Recent') + ' • Pillar: <strong class="text-rose-300">' + state.streamPillar + '</strong> • Sentiment: <strong class="text-white">' + state.streamSentiment + '</strong> • Platform: <strong class="text-white">' + state.streamPlatform + '</strong></p>' +
+                  '</div>' +
+                  '<div class="flex flex-wrap items-center gap-2">' +
+                    (hiddenCount > 0 ? (
+                      '<button id="btn-load-more-top" class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-500/40 text-xs font-extrabold">➕ Load 16 More Posts (' + hiddenCount + ' Left)</button>'
+                    ) : '') +
+                    '<button id="btn-toggle-show-all" class="px-3.5 py-2 rounded-xl text-xs font-extrabold border transition-all ' + (state.showAllFeed ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50' : 'bg-[#E11D2B] text-white border-rose-400 shadow-lg') + '">' +
+                      (state.showAllFeed ? '✓ Showing All ' + filteredPosts.length + ' Posts (Click for Top 8 Preview)' : '📋 View All Feed (' + filteredPosts.length + ' Posts)') +
+                    '</button>' +
+                    '<button id="btn-stream-scope" class="px-3.5 py-2 rounded-xl text-xs font-extrabold border transition-all ' + (state.streamScope === 'all' ? 'bg-sky-500/20 text-sky-200 border-sky-500/50' : 'bg-slate-900 text-slate-200 border-slate-700 hover:bg-slate-800') + '">' +
+                      (state.streamScope === 'all' ? '🌐 Viewing All 5 Entities (' + allEntityTotalCount + ' Posts) — Switch to ' + activeEntityMeta.name + ' Only' : '🌐 View All 5 Entities Feed (' + allEntityTotalCount + ' Posts)') +
+                    '</button>' +
+                    '<button id="btn-open-drawer" class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white border border-slate-700 text-xs font-extrabold">⚡ Open Full Stream Drawer (' + filteredPosts.length + ')</button>' +
+                  '</div>' +
+                '</div>' +
+
+                // STREAM FILTER BAR (SORT, SENTIMENT, PLATFORM, PILLAR, TRANSLATE ALL)
+                '<div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3.5 space-y-3">' +
+                  '<div class="flex flex-wrap items-center justify-between gap-2">' +
+                    '<div class="flex flex-wrap items-center gap-1.5">' +
+                      '<span class="text-xs font-extrabold uppercase text-slate-400 mr-1">Sort:</span>' +
+                      '<button data-sort="impact" class="px-2.5 py-1 rounded-lg text-xs font-extrabold border ' + (state.streamSort === 'impact' ? 'bg-[#E11D2B] text-white border-rose-400' : 'bg-slate-900 text-slate-300 border-slate-700') + '">🔥 Highest Impact / Virality First</button>' +
+                      '<button data-sort="recent" class="px-2.5 py-1 rounded-lg text-xs font-extrabold border ' + (state.streamSort === 'recent' ? 'bg-[#E11D2B] text-white border-rose-400' : 'bg-slate-900 text-slate-300 border-slate-700') + '">🕒 Most Recent</button>' +
+                    '</div>' +
+                    '<div class="flex flex-wrap items-center gap-1.5">' +
+                      '<span class="text-xs font-extrabold uppercase text-slate-400 mr-1">Sentiment:</span>' +
+                      ['ALL', 'Negative', 'Positive', 'Neutral'].map(function (s) {
+                        var active = state.streamSentiment === s;
+                        var label = s === 'ALL' ? 'All Sentiments' : s === 'Negative' ? '🔴 Negative' : s === 'Positive' ? '🟢 Positive' : '⚪ Neutral';
+                        return '<button data-sentiment="' + s + '" class="px-2.5 py-1 rounded-lg text-xs font-extrabold border ' + (active ? 'bg-[#E11D2B] text-white border-rose-400' : 'bg-slate-900 text-slate-300 border-slate-700 hover:bg-slate-800') + '">' + label + '</button>';
+                      }).join('') +
+                    '</div>' +
+                  '</div>' +
+                  '<div class="flex flex-wrap items-center justify-between gap-2 pt-2.5 border-t border-slate-800">' +
+                    '<div class="flex flex-wrap items-center gap-2">' +
+                      '<span class="text-xs font-extrabold uppercase text-slate-400">Pillar:</span>' +
+                      '<select id="sel-pillar" class="bg-slate-900 text-white text-xs font-bold rounded-xl px-3 py-1.5 border border-slate-700">' +
+                        '<option value="ALL">All Pillars (' + (state.streamScope === 'all' ? 'All Group Pillars' : activeEntityMeta.name + ' • ' + pillars.length + ' Pillars') + ')</option>' +
+                        pillars.map(function (pil) {
+                          return '<option value="' + pil.code + '" ' + (state.streamPillar === pil.code ? 'selected' : '') + '>' + pil.code + ' — ' + pil.domain + '</option>';
+                        }).join('') +
+                      '</select>' +
+                      '<span class="text-xs font-extrabold uppercase text-slate-400 ml-1">Platform:</span>' +
+                      '<select id="sel-platform" class="bg-slate-900 text-white text-xs font-bold rounded-xl px-3 py-1.5 border border-slate-700">' +
+                        '<option value="ALL">All 9 Platforms</option>' +
+                        ALL_PLATFORMS.map(function (plName) {
+                          return '<option value="' + plName + '" ' + (state.streamPlatform === plName ? 'selected' : '') + '>' + plName + '</option>';
+                        }).join('') +
+                      '</select>' +
+                    '</div>' +
+                    '<div class="flex flex-wrap items-center gap-2">' +
+                      '<button id="btn-translate-all" class="px-3 py-1.5 rounded-xl text-xs font-extrabold border ' + (state.translateAll ? 'bg-sky-500/20 text-sky-200 border-sky-500/40' : 'bg-slate-900 text-slate-200 border-slate-700') + '">🌐 ' + (state.translateAll ? 'Showing English Translations' : '1-Click Translate All to English') + '</button>' +
+                      '<button id="btn-reset-stream" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold">Reset Stream Filters</button>' +
+                    '</div>' +
+                  '</div>' +
+                '</div>' +
+
+                // FEED CARDS GRID
+                (visiblePosts.length > 0 ? (
+                  '<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">' +
+                    visiblePosts.map(renderPostCard).join('') +
+                  '</div>'
+                ) : (
+                  '<div class="bg-slate-950/80 border border-slate-800 rounded-xl p-8 text-center space-y-2">' +
+                    '<div class="text-sm font-extrabold text-white">No social posts match this exact filter combination.</div>' +
+                    '<p class="text-xs text-slate-400">Click below to reset your Pillar, Sentiment, or Platform filters or view all 5 Group Entities.</p>' +
+                  '</div>'
+                )) +
+
+                // BOTTOM "VIEW ALL FEED" / EXPAND BAR
+                '<div class="pt-3 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-950/70 p-4 rounded-xl border border-slate-800">' +
+                  '<div class="text-xs text-slate-300">' +
+                    'Showing <strong class="text-white">' + visiblePosts.length + '</strong> of <strong class="text-white">' + filteredPosts.length + '</strong> verified stream posts for <strong class="text-rose-300">' + (state.streamScope === 'all' ? 'All 5 AirAsia Group Entities' : activeEntityMeta.name) + '</strong> in <strong class="text-sky-300">' + dr.label + '</strong>' +
+                    (hiddenCount > 0 ? ' (<strong class="text-amber-300">+' + hiddenCount + ' more posts available</strong>)' : ' (All matching posts displayed)') +
+                  '</div>' +
+                  '<div class="flex flex-wrap items-center gap-2">' +
+                    (hiddenCount > 0 ? (
+                      '<button id="btn-load-more-bottom" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-500/40 text-xs font-extrabold">➕ Load 16 More Posts (' + hiddenCount + ' Remaining)</button>'
+                    ) : '') +
+                    '<button id="btn-bottom-show-all" class="px-4 py-2 rounded-xl bg-[#E11D2B] hover:bg-rose-600 text-white text-xs font-extrabold shadow-lg">' +
+                      (state.showAllFeed ? '▲ Collapse to Top 8 Preview' : '▼ View All ' + filteredPosts.length + ' Posts in Feed' + (hiddenCount > 0 ? ' (+' + hiddenCount + ' More)' : '')) +
+                    '</button>' +
+                    '<button id="btn-bottom-scope" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white border border-slate-700 text-xs font-extrabold">' +
+                      (state.streamScope === 'all' ? '🎯 Show Only ' + activeEntityMeta.name + ' (' + currentEntityTotalCount + ' Posts)' : '🌐 View All 5 Entities Feed (' + allEntityTotalCount + ' Group Posts)') +
+                    '</button>' +
+                    '<button id="btn-bottom-drawer" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-sky-300 border border-slate-700 text-xs font-extrabold">' +
+                      '⚡ Open Full-Screen Stream Drawer (' + filteredPosts.length + ')' +
+                    '</button>' +
+                  '</div>' +
+                '</div>' +
+              '</section>' +
+            '</div>' +
+
+            // CONTEXTUAL RIGHT-HAND STREAM DRAWER (OPENS ON "VIEW STREAM" OR "OPEN FULL STREAM DRAWER")
+            (state.drawerOpen ? (
+              '<div class="fixed inset-0 z-50 flex justify-end bg-black/70 backdrop-blur-sm">' +
+                '<div class="w-full max-w-3xl bg-[#0B0F17] border-l border-slate-800 h-full flex flex-col shadow-2xl">' +
+                  '<div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950">' +
+                    '<div>' +
+                      '<div class="flex items-center gap-2">' +
+                        '<span class="w-2.5 h-2.5 rounded-full bg-[#E11D2B] animate-pulse"></span>' +
+                        '<h3 class="text-base font-extrabold text-white">Full Live Social Feed Drawer • ' + (state.streamScope === 'all' ? 'All 5 Group Entities' : activeEntityMeta.name) + ' (' + state.streamPillar + ')</h3>' +
+                      '</div>' +
+                      '<p class="text-xs text-slate-400 mt-0.5">Showing all ' + filteredPosts.length + ' verified posts in ' + activeWindowText + ' • Highlighted keywords &amp; 1-click translation</p>' +
+                    '</div>' +
+                    '<div class="flex items-center gap-2">' +
+                      '<button id="btn-drawer-scope" class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-sky-300 text-xs font-extrabold">' +
+                        (state.streamScope === 'all' ? 'Show ' + activeEntityMeta.name + ' Only' : '🌐 View All 5 Entities (' + allEntityTotalCount + ')') +
+                      '</button>' +
+                      '<button id="btn-close-drawer" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-extrabold">✕ Close Drawer</button>' +
+                    '</div>' +
+                  '</div>' +
+                  '<div class="p-4 overflow-y-auto flex-1 space-y-3.5">' +
+                    filteredPosts.map(renderPostCard).join('') +
+                  '</div>' +
+                '</div>' +
+              '</div>'
+            ) : '') +
+
+            // ORIGINAL SOCIAL POST VIEWER MODAL (OPENS ON "VIEW ORIGINAL POST ↗")
+            (state.activePostId ? renderOriginalPostModal(
+              activeDatePosts.find(function (p) { return p.id === state.activePostId; }) || filteredPosts[0],
+              filteredPosts
+            ) : '');
+
+          // Bind event listeners
+          var btnThemeMode = document.getElementById('btn-theme-mode');
+          if (btnThemeMode) btnThemeMode.onclick = function () { state.themeMode = state.themeMode === 'dark' ? 'light' : 'dark'; render(); };
+          var btnCompare = document.getElementById('btn-compare');
+          if (btnCompare) btnCompare.onclick = function () { state.comparePrior = !state.comparePrior; render(); };
+          var btnExec = document.getElementById('btn-exec');
+          if (btnExec) btnExec.onclick = function () { state.execMode = !state.execMode; render(); };
+          var btnBriefing = document.getElementById('btn-briefing');
+          if (btnBriefing) btnBriefing.onclick = function () { state.briefingCollapsed = !state.briefingCollapsed; render(); };
+          var btnReset = document.getElementById('btn-reset-stream');
+          if (btnReset) btnReset.onclick = function () { state.streamPillar = 'ALL'; state.streamSentiment = 'ALL'; state.streamPlatform = 'ALL'; state.streamScope = 'entity'; state.feedLimit = 8; render(); };
+          var selPillar = document.getElementById('sel-pillar');
+          if (selPillar) selPillar.onchange = function (e) { state.streamPillar = e.target.value; render(); };
+          var selPlatform = document.getElementById('sel-platform');
+          if (selPlatform) selPlatform.onchange = function (e) { state.streamPlatform = e.target.value; render(); };
+          var btnTranslateAll = document.getElementById('btn-translate-all');
+          if (btnTranslateAll) btnTranslateAll.onclick = function () { state.translateAll = !state.translateAll; render(); };
+          var btnLoadMoreTop = document.getElementById('btn-load-more-top');
+          if (btnLoadMoreTop) btnLoadMoreTop.onclick = function () { state.feedLimit = (state.feedLimit || 8) + 16; if (state.feedLimit >= filteredPosts.length) state.showAllFeed = true; render(); };
+          var btnLoadMoreBottom = document.getElementById('btn-load-more-bottom');
+          if (btnLoadMoreBottom) btnLoadMoreBottom.onclick = function () { state.feedLimit = (state.feedLimit || 8) + 16; if (state.feedLimit >= filteredPosts.length) state.showAllFeed = true; render(); };
+          var btnToggleShowAll = document.getElementById('btn-toggle-show-all');
+          if (btnToggleShowAll) btnToggleShowAll.onclick = function () { state.showAllFeed = !state.showAllFeed; if (!state.showAllFeed) state.feedLimit = 8; render(); };
+          var btnBottomShowAll = document.getElementById('btn-bottom-show-all');
+          if (btnBottomShowAll) btnBottomShowAll.onclick = function () { state.showAllFeed = !state.showAllFeed; if (!state.showAllFeed) state.feedLimit = 8; render(); };
+          var btnStreamScope = document.getElementById('btn-stream-scope');
+          if (btnStreamScope) btnStreamScope.onclick = function () { state.streamScope = state.streamScope === 'all' ? 'entity' : 'all'; state.streamPillar = 'ALL'; state.feedLimit = 12; render(); };
+          var btnBottomScope = document.getElementById('btn-bottom-scope');
+          if (btnBottomScope) btnBottomScope.onclick = function () { state.streamScope = state.streamScope === 'all' ? 'entity' : 'all'; state.streamPillar = 'ALL'; state.feedLimit = 12; render(); };
+          var btnDrawerScope = document.getElementById('btn-drawer-scope');
+          if (btnDrawerScope) btnDrawerScope.onclick = function () { state.streamScope = state.streamScope === 'all' ? 'entity' : 'all'; state.streamPillar = 'ALL'; render(); };
+          var btnOpenDrawer = document.getElementById('btn-open-drawer');
+          if (btnOpenDrawer) btnOpenDrawer.onclick = function () { state.drawerOpen = true; render(); };
+          var btnBottomDrawer = document.getElementById('btn-bottom-drawer');
+          if (btnBottomDrawer) btnBottomDrawer.onclick = function () { state.drawerOpen = true; render(); };
+          var btnCloseDrawer = document.getElementById('btn-close-drawer');
+          if (btnCloseDrawer) btnCloseDrawer.onclick = function () { state.drawerOpen = false; render(); };
+
+          document.querySelectorAll('[data-entity]').forEach(function (el) {
+            el.onclick = function () {
+              state.entityId = el.getAttribute('data-entity');
+              state.streamPillar = 'ALL';
+              state.feedLimit = 8;
+              render();
+            };
+          });
+          document.querySelectorAll('[data-date]').forEach(function (el) {
+            el.onclick = function () { state.dateRangeId = el.getAttribute('data-date'); state.feedLimit = 8; render(); };
+          });
+          var inpStart = document.getElementById('inp-custom-start');
+          if (inpStart) {
+            inpStart.onchange = function (e) {
+              if (e.target.value) {
+                state.customStart = e.target.value;
+                if (state.customStart > state.customEnd) state.customEnd = state.customStart;
+                render();
+              }
+            };
+          }
+          var inpEnd = document.getElementById('inp-custom-end');
+          if (inpEnd) {
+            inpEnd.onchange = function (e) {
+              if (e.target.value) {
+                state.customEnd = e.target.value;
+                if (state.customEnd < state.customStart) state.customStart = state.customEnd;
+                render();
+              }
+            };
+          }
+          document.querySelectorAll('[data-custom-preset]').forEach(function (el) {
+            el.onclick = function () {
+              var days = parseInt(el.getAttribute('data-custom-preset'), 10) || 14;
+              var endObj = new Date('2026-10-27T00:00:00');
+              var startObj = new Date(endObj.getTime() - (days - 1) * 86400000);
+              state.customEnd = '2026-10-27';
+              state.customStart = startObj.toISOString().slice(0, 10);
+              render();
+            };
+          });
+          document.querySelectorAll('[data-pillar]').forEach(function (el) {
+            el.onclick = function () {
+              state.streamPillar = el.getAttribute('data-pillar');
+              state.drawerOpen = true;
+              render();
+            };
+          });
+          document.querySelectorAll('[data-sort]').forEach(function (el) {
+            el.onclick = function () { state.streamSort = el.getAttribute('data-sort'); render(); };
+          });
+          document.querySelectorAll('[data-sentiment]').forEach(function (el) {
+            el.onclick = function () { state.streamSentiment = el.getAttribute('data-sentiment'); render(); };
+          });
+          document.querySelectorAll('[data-translate]').forEach(function (el) {
+            el.onclick = function () {
+              var id = el.getAttribute('data-translate');
+              state.translatedMap[id] = !state.translatedMap[id];
+              render();
+            };
+          });
+          document.querySelectorAll('[data-open-post]').forEach(function (el) {
+            el.onclick = function () {
+              var postId = el.getAttribute('data-open-post');
+              if (postId) {
+                state.activePostId = postId;
+                render();
+              }
+            };
+          });
+          var btnClosePostModal = document.getElementById('btn-close-post-modal');
+          if (btnClosePostModal) btnClosePostModal.onclick = function () { state.activePostId = null; render(); };
+          var btnClosePostModalBottom = document.getElementById('btn-close-post-modal-bottom');
+          if (btnClosePostModalBottom) btnClosePostModalBottom.onclick = function () { state.activePostId = null; render(); };
+          var postModalBackdrop = document.getElementById('post-modal-backdrop');
+          if (postModalBackdrop) postModalBackdrop.onclick = function () { state.activePostId = null; render(); };
+        }
+
+        render();
+      })();
+    </script>
+  </body>
+</html>
