@@ -1316,9 +1316,7 @@
           var rule = DISAMBIGUATION_RULES[state.entityId] || DISAMBIGUATION_RULES.airasia;
           var activeEntityMeta = ENTITIES.find(function (e) { return e.id === state.entityId; }) || ENTITIES[0];
           var activePillarMatrix = ENTITY_PILLAR_MATRICES[state.entityId] || ENTITY_PILLAR_MATRICES.airasia;
-          var systemPrefersDim = !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
-          var effectiveTheme = state.themeMode === 'system' ? (systemPrefersDim ? 'dim' : 'light') : state.themeMode;
-          var isLight = effectiveTheme === 'light';
+          var isLight = state.themeMode === 'light';
 
           if (isLight) {
             document.body.classList.add('theme-light');
@@ -1408,9 +1406,6 @@
                       '</button>' +
                       '<button type="button" data-theme-mode="dim" class="px-3 py-1.5 rounded-lg text-xs font-extrabold inline-flex items-center gap-1.5 transition-all ' + (state.themeMode === 'dim' ? 'bg-[#E11D2B] text-white shadow-md' : 'text-slate-300 hover:bg-slate-800') + '">' +
                         '<span>🌆</span><span>Dim Mode</span>' +
-                      '</button>' +
-                      '<button type="button" data-theme-mode="system" class="px-3 py-1.5 rounded-lg text-xs font-extrabold inline-flex items-center gap-1.5 transition-all ' + (state.themeMode === 'system' ? 'bg-[#E11D2B] text-white shadow-md' : 'text-slate-300 hover:bg-slate-800') + '" title="Automatically follows your device system theme (' + (systemPrefersDim ? 'Dim Mode' : 'Light Mode') + ')">' +
-                        '<span>💻</span><span>System Auto</span>' +
                       '</button>' +
                     '</div>' +
                   '</div>' +
@@ -1835,15 +1830,6 @@
           if (btnClosePostModalBottom) btnClosePostModalBottom.onclick = function () { state.activePostId = null; render(); };
           var postModalBackdrop = document.getElementById('post-modal-backdrop');
           if (postModalBackdrop) postModalBackdrop.onclick = function () { state.activePostId = null; render(); };
-        }
-
-        if (window.matchMedia) {
-          var mq = window.matchMedia('(prefers-color-scheme: dark)');
-          if (mq.addEventListener) {
-            mq.addEventListener('change', function () {
-              if (state.themeMode === 'system') render();
-            });
-          }
         }
 
         render();
