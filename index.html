@@ -144,6 +144,60 @@
         color: #0f172a !important;
         border-color: #94a3b8 !important;
       }
+      /* Executive Dim Mode Overrides (.theme-dim) — Soft Slate Command Center */
+      .theme-dim {
+        background-color: #182232 !important;
+        color: #f1f5f9 !important;
+      }
+      .theme-dim .bg-\[\#080B11\] {
+        background-color: #182232 !important;
+      }
+      .theme-dim .bg-\[\#0F1520\],
+      .theme-dim .bg-\[\#0B0F17\] {
+        background-color: #212e42 !important;
+        border-color: #364963 !important;
+        box-shadow: 0 8px 24px -4px rgba(10, 15, 28, 0.35) !important;
+      }
+      .theme-dim .from-\[\#131B2E\] {
+        background-image: linear-gradient(to right, #233248, #1e2b3e, #2a2438) !important;
+        border-color: #364963 !important;
+      }
+      .theme-dim .bg-slate-950,
+      .theme-dim .bg-slate-950\/95,
+      .theme-dim .bg-slate-950\/90,
+      .theme-dim .bg-slate-950\/80,
+      .theme-dim .bg-slate-950\/70,
+      .theme-dim .bg-slate-950\/60 {
+        background-color: #1a2536 !important;
+        border-color: #334155 !important;
+      }
+      .theme-dim .bg-slate-900,
+      .theme-dim .bg-slate-900\/95,
+      .theme-dim .bg-slate-900\/90,
+      .theme-dim .bg-slate-900\/50 {
+        background-color: #26354b !important;
+        border-color: #3b4f6b !important;
+      }
+      .theme-dim .bg-slate-800 {
+        background-color: #334155 !important;
+        border-color: #475569 !important;
+      }
+      .theme-dim .border-slate-800,
+      .theme-dim .border-slate-700 {
+        border-color: #364963 !important;
+      }
+      .theme-dim .divide-slate-800 > :not([hidden]) ~ :not([hidden]) {
+        border-color: #364963 !important;
+      }
+      .theme-dim .text-slate-400 {
+        color: #cbd5e1 !important;
+      }
+      .theme-dim input[type="date"] {
+        color-scheme: dark;
+        background-color: #1a2536 !important;
+        color: #f8fafc !important;
+        border-color: #475569 !important;
+      }
     </style>
   </head>
   <body class="theme-light bg-[#080B11] text-slate-100 antialiased selection:bg-[#E11D2B] selection:text-white min-h-screen">
@@ -1262,12 +1316,16 @@
           var rule = DISAMBIGUATION_RULES[state.entityId] || DISAMBIGUATION_RULES.airasia;
           var activeEntityMeta = ENTITIES.find(function (e) { return e.id === state.entityId; }) || ENTITIES[0];
           var activePillarMatrix = ENTITY_PILLAR_MATRICES[state.entityId] || ENTITY_PILLAR_MATRICES.airasia;
-          var isLight = state.themeMode === 'light';
+          var systemPrefersDim = !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          var effectiveTheme = state.themeMode === 'system' ? (systemPrefersDim ? 'dim' : 'light') : state.themeMode;
+          var isLight = effectiveTheme === 'light';
 
           if (isLight) {
             document.body.classList.add('theme-light');
+            document.body.classList.remove('theme-dim');
           } else {
             document.body.classList.remove('theme-light');
+            document.body.classList.add('theme-dim');
           }
 
           var pillars = base.pillars.map(function (p, idx) {
@@ -1344,9 +1402,17 @@
                     '</div>' +
                   '</div>' +
                   '<div class="flex flex-wrap items-center gap-2.5">' +
-                    '<button id="btn-theme-mode" class="px-3.5 py-2 rounded-xl border bg-slate-900 border-slate-700 text-white text-xs font-extrabold inline-flex items-center gap-2">' +
-                      '<span>' + (isLight ? '🌙 Dark Mode' : '☀️ Light Mode') + '</span>' +
-                    '</button>' +
+                    '<div class="inline-flex items-center p-1 rounded-xl bg-slate-900 border border-slate-700 gap-1" role="group" aria-label="Theme Mode">' +
+                      '<button type="button" data-theme-mode="light" class="px-3 py-1.5 rounded-lg text-xs font-extrabold inline-flex items-center gap-1.5 transition-all ' + (state.themeMode === 'light' ? 'bg-[#E11D2B] text-white shadow-md' : 'text-slate-300 hover:bg-slate-800') + '">' +
+                        '<span>☀️</span><span>Light Mode</span>' +
+                      '</button>' +
+                      '<button type="button" data-theme-mode="dim" class="px-3 py-1.5 rounded-lg text-xs font-extrabold inline-flex items-center gap-1.5 transition-all ' + (state.themeMode === 'dim' ? 'bg-[#E11D2B] text-white shadow-md' : 'text-slate-300 hover:bg-slate-800') + '">' +
+                        '<span>🌆</span><span>Dim Mode</span>' +
+                      '</button>' +
+                      '<button type="button" data-theme-mode="system" class="px-3 py-1.5 rounded-lg text-xs font-extrabold inline-flex items-center gap-1.5 transition-all ' + (state.themeMode === 'system' ? 'bg-[#E11D2B] text-white shadow-md' : 'text-slate-300 hover:bg-slate-800') + '" title="Automatically follows your device system theme (' + (systemPrefersDim ? 'Dim Mode' : 'Light Mode') + ')">' +
+                        '<span>💻</span><span>System Auto</span>' +
+                      '</button>' +
+                    '</div>' +
                   '</div>' +
                 '</div>' +
                 // ENTITY & DATE CONTROLS
@@ -1652,8 +1718,12 @@
             ) : '');
 
           // Bind event listeners
-          var btnThemeMode = document.getElementById('btn-theme-mode');
-          if (btnThemeMode) btnThemeMode.onclick = function () { state.themeMode = state.themeMode === 'dark' ? 'light' : 'dark'; render(); };
+          document.querySelectorAll('[data-theme-mode]').forEach(function (el) {
+            el.onclick = function () {
+              state.themeMode = el.getAttribute('data-theme-mode') || 'light';
+              render();
+            };
+          });
           var btnCompare = document.getElementById('btn-compare');
           if (btnCompare) btnCompare.onclick = function () { state.comparePrior = !state.comparePrior; render(); };
           var btnExec = document.getElementById('btn-exec');
@@ -1765,6 +1835,15 @@
           if (btnClosePostModalBottom) btnClosePostModalBottom.onclick = function () { state.activePostId = null; render(); };
           var postModalBackdrop = document.getElementById('post-modal-backdrop');
           if (postModalBackdrop) postModalBackdrop.onclick = function () { state.activePostId = null; render(); };
+        }
+
+        if (window.matchMedia) {
+          var mq = window.matchMedia('(prefers-color-scheme: dark)');
+          if (mq.addEventListener) {
+            mq.addEventListener('change', function () {
+              if (state.themeMode === 'system') render();
+            });
+          }
         }
 
         render();
