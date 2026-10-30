@@ -361,13 +361,124 @@
           return String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
         }
 
-        var LIVE_CACHE_KEY = 'airasia_real_scraped_v2';
+        function stripHtmlTags(html) {
+          return String(html || '')
+            .replace(/<[^>]*>/g, ' ')
+            .replace(/&amp;/g, '&')
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;/g, "'")
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/\s+/g, ' ')
+            .trim();
+        }
+
+        function buildEntitySnippet(title, body, maxLen) {
+          var limit = maxLen || 360;
+          var cleanTitle = stripHtmlTags(title || '');
+          var cleanBody = stripHtmlTags(body || '');
+          var full = (cleanTitle + (cleanBody ? (cleanTitle ? ' — ' : '') + cleanBody : '')).replace(/\s+/g, ' ').trim();
+          if (!full) return '';
+          if (full.length <= limit) return full;
+          var head = full.slice(0, limit - 3);
+          var brandRegex = /\b(airasia|air asia|airasiax|capital a|asia digital engineering|santan|pak nasser|teleport|bigpay|askbo|ask bo|klia2|nadia omer|catherine goh|mahesh kumar|pete chareonwongsak)\b/i;
+          if (brandRegex.test(head)) {
+            return head + '...';
+          }
+          var match = brandRegex.exec(full);
+          if (match && typeof match.index === 'number') {
+            var prefix = cleanTitle ? (cleanTitle.slice(0, 120) + ' — ... ') : '... ';
+            var avail = Math.max(80, limit - prefix.length - 4);
+            var start = Math.max(0, match.index - 45);
+            var excerpt = full.slice(start, start + avail).trim();
+            return prefix + excerpt + '...';
+          }
+          return head + '...';
+        }
+
+        function isStrictlyRelatedToEntity(entityId, rawText) {
+          if (!rawText || typeof rawText !== 'string') return false;
+          var lower = rawText.toLowerCase();
+
+          var hasAirAsiaCore = /\b(airasia|air asia|airasiax|capital a|tony fernandes|bo lingam|askbo|ask bo)\b/i.test(lower);
+
+          if (entityId === 'airasia') {
+            if (/\b(airasia|air asia|airasiax|askbo|ask bo)\b/i.test(lower)) return true;
+            if (/\b(capital a|klia2)\b/i.test(lower) && /\b(flight|flights|airline|airlines|aircraft|plane|boarding|check-in|baggage|luggage|delay|delayed|cancelled|cabin|crew|pilot|terminal|gate|ticket|fare|refund|seat|route|passenger|passengers)\b/i.test(lower)) {
+              return true;
+            }
+            return false;
+          }
+
+          if (entityId === 'move') {
+            if (/\b(airasia move|move superapp|airasia superapp|airasia super app|nadia omer)\b/i.test(lower)) return true;
+            if (/\bbigpay\b/i.test(lower) && /\b(airasia|air asia|capital a|move|app|flight|travel|payment|points|card|wallet|booking)\b/i.test(lower)) return true;
+            if (/\b(airasia|air asia)\b/i.test(lower) && /\b(move|superapp|super app|app|website|online booking|book flight|flight booking|hotel|snap|ride|points|bigpay|ota|login|checkout|payment|glitch|crash|voucher|promo code)\b/i.test(lower)) {
+              return true;
+            }
+            return false;
+          }
+
+          if (entityId === 'santan') {
+            if (/\b(santan dave|dave santan|psychodrama|uk rap|rapper|hip hop|glastonbury|central cee|stormzy)\b/i.test(lower)) {
+              return false;
+            }
+            if (/\b(resepi|masak lemak|lemang|rendang ayam kampung|santan kotak|santan kara|ayam masak|gulai|coconut milk|coconut cream|curry recipe)\b/i.test(lower) && !/\b(airasia|air asia|pak nasser|catherine goh)\b/i.test(lower)) {
+              return false;
+            }
+            if (/\b(pak nasser|catherine goh)\b/i.test(lower)) return true;
+            if (/\bsantan\b/i.test(lower) && /\b(airasia|air asia|capital a|inflight|in-flight|airline|flight|cabin|pak nasser|nasi lemak|catering|cafe|ready-to-eat|pre-book meal|airline meal)\b/i.test(lower)) {
+              return true;
+            }
+            if (/\b(airasia|air asia)\b/i.test(lower) && /\b(santan|pak nasser|nasi lemak|inflight meal|in-flight meal|airline meal|cabin meal|inflight food|in-flight food|airline food|cabin food|pre-book meal|meal|catering|menu|boba)\b/i.test(lower)) {
+              return true;
+            }
+            return false;
+          }
+
+          if (entityId === 'ade') {
+            if (/\b(asia digital engineering|mahesh kumar)\b/i.test(lower)) return true;
+            if (/\bade\b/i.test(lower) && /\b(airasia|air asia|capital a|mro|hangar|aircraft maintenance|base maintenance|line maintenance|sepang|aeropolis|redchain|airframe)\b/i.test(lower)) {
+              return true;
+            }
+            if (/\b(airasia|air asia|capital a)\b/i.test(lower) && /\b(asia digital engineering|mro|hangar|aircraft maintenance|base maintenance|line maintenance|c-check|d-check|airframe|redchain|aeropolis|fleet maintenance|aircraft engineer|spare parts|maintenance)\b/i.test(lower)) {
+              return true;
+            }
+            return false;
+          }
+
+          if (entityId === 'teleport') {
+            if (/\b(roblox|minecraft|valorant|genshin|mage|dungeon|spell|game|gaming|gamer|anime|sci-fi|portal|skyrim|diablo|witcher|pokemon|fortnite|overwatch|starfield|teleporthq|goteleport|gravitational teleport|ssh|kubernetes|k8s|docker|devops|server access|zero trust|sims|warcraft|zelda|elden ring|cyberpunk|baldurs gate|vr|metaverse|quantum)\b/i.test(lower) && !hasAirAsiaCore) {
+              return false;
+            }
+            if (/\b(pete chareonwongsak)\b/i.test(lower)) return true;
+            if (/\bteleport\b/i.test(lower) && /\b(airasia|air asia|capital a|a321f|klia|klia2)\b/i.test(lower)) {
+              return true;
+            }
+            if (/\bteleport\b/i.test(lower) && /\b(cargo|freighter|air cargo|belly space|air freight|e-commerce logistics|parcel delivery|cross-border logistics)\b/i.test(lower) && /\b(malaysia|asean|southeast asia|airline|aviation|flight|airport|capital a|airasia)\b/i.test(lower)) {
+              return true;
+            }
+            if (/\b(airasia|air asia|capital a)\b/i.test(lower) && /\b(teleport|cargo|freighter|a321f|air cargo|freight|logistics|parcel delivery|belly space)\b/i.test(lower)) {
+              return true;
+            }
+            return false;
+          }
+
+          return false;
+        }
+
+        var LIVE_CACHE_KEY = 'airasia_real_scraped_v3_strict';
         var cachedRealPosts = [];
         try {
+          localStorage.removeItem('airasia_real_scraped_v2');
           var rawCache = localStorage.getItem(LIVE_CACHE_KEY);
           if (rawCache) {
             var parsedCache = JSON.parse(rawCache);
-            if (Array.isArray(parsedCache)) cachedRealPosts = parsedCache;
+            if (Array.isArray(parsedCache)) {
+              cachedRealPosts = parsedCache.filter(function (item) {
+                return item && item.entityId && item.originalText && isStrictlyRelatedToEntity(item.entityId, item.originalText);
+              });
+            }
           }
         } catch (e) {}
 
@@ -403,37 +514,12 @@
           activePlatformsConnected: 7
         };
 
-        function stripHtmlTags(html) {
-          return String(html || '')
-            .replace(/<[^>]*>/g, ' ')
-            .replace(/&amp;/g, '&')
-            .replace(/&quot;/g, '"')
-            .replace(/&#39;/g, "'")
-            .replace(/&lt;/g, '<')
-            .replace(/&gt;/g, '>')
-            .replace(/\s+/g, ' ')
-            .trim();
-        }
-
         function classifyLiveScrapedText(entityId, rawText) {
+          if (!isStrictlyRelatedToEntity(entityId, rawText)) {
+            state.noiseBlockedCount = (state.noiseBlockedCount || 0) + 1;
+            return null;
+          }
           var lower = (rawText || '').toLowerCase();
-          // Strict Boolean Noise Exclusion
-          if (entityId === 'santan' && /(resepi|masak lemak|lemang|rendang ayam kampung|santan kotak|kara|ayam masak|gulai|coconut milk)/i.test(lower) && !/(airasia|pak nasser|inflight|flight|cabin|cafe|catering)/i.test(lower)) {
-            state.noiseBlockedCount = (state.noiseBlockedCount || 0) + 1;
-            return null;
-          }
-          if (entityId === 'teleport' && /(roblox|minecraft|valorant|genshin|mage|dungeon|spell|game|anime|sci-fi| magic |portal|skyrim|diablo|witcher|pokemon|fortnite|overwatch|starfield)/i.test(lower) && !/(airasia|cargo|freighter|parcel|logistics|a321f|delivery|courier|klia)/i.test(lower)) {
-            state.noiseBlockedCount = (state.noiseBlockedCount || 0) + 1;
-            return null;
-          }
-          if (entityId === 'move' && !/(airasia|superapp|move app|bigpay|klia|snap|ota|nadia omer)/i.test(lower)) {
-            state.noiseBlockedCount = (state.noiseBlockedCount || 0) + 1;
-            return null;
-          }
-          if (entityId === 'ade' && !/(asia digital engineering|ade|airasia|mro|hangar|sepang|aeropolis|aircraft|maintenance|mahesh)/i.test(lower)) {
-            state.noiseBlockedCount = (state.noiseBlockedCount || 0) + 1;
-            return null;
-          }
           var matrix = ENTITY_PILLAR_MATRICES[entityId] || ENTITY_PILLAR_MATRICES.airasia;
           var matchedPillar = matrix[0] ? matrix[0].code : 'PIL-01';
           var matchedKeywords = [];
@@ -458,6 +544,24 @@
           };
         }
 
+        function getMatchingEntitiesForText(rawText, primaryQueryObj, allQueries) {
+          var matched = [];
+          if (primaryQueryObj && isStrictlyRelatedToEntity(primaryQueryObj.entityId, rawText)) {
+            matched.push(primaryQueryObj);
+          }
+          (allQueries || []).forEach(function (qObj) {
+            if (!primaryQueryObj || qObj.entityId !== primaryQueryObj.entityId) {
+              if (isStrictlyRelatedToEntity(qObj.entityId, rawText)) {
+                matched.push(qObj);
+              }
+            }
+          });
+          if (matched.length === 0) {
+            state.noiseBlockedCount = (state.noiseBlockedCount || 0) + 1;
+          }
+          return matched;
+        }
+
         function scrapeLivePublicMentions() {
           if (state.isScrapingLive) return;
           state.isScrapingLive = true;
@@ -465,21 +569,21 @@
           render();
 
           var queries = [
-            { entityId: 'airasia', entityLabel: 'AirAsia (Airline)', q: 'AirAsia flight OR KLIA2 OR AskBo OR refund', bskyQ: 'AirAsia', hnQ: 'AirAsia', seQ: 'AirAsia', lemmyQ: 'AirAsia', mastoTag: 'airasia' },
-            { entityId: 'move', entityLabel: 'AirAsia MOVE', q: '"AirAsia MOVE" OR "airasia superapp" OR "AirAsia app"', bskyQ: 'AirAsia MOVE', hnQ: 'AirAsia app', seQ: 'AirAsia booking', lemmyQ: 'AirAsia app', mastoTag: 'airasiamove' },
-            { entityId: 'santan', entityLabel: 'Santan', q: 'Santan AirAsia OR "Pak Nasser" OR "AirAsia meal"', bskyQ: 'Santan AirAsia', hnQ: 'AirAsia food', seQ: 'AirAsia meal', lemmyQ: 'AirAsia food', mastoTag: 'santan' },
-            { entityId: 'ade', entityLabel: 'ADE (Engineering)', q: '"Asia Digital Engineering" OR "ADE AirAsia" OR "AirAsia MRO"', bskyQ: 'Asia Digital Engineering', hnQ: 'Asia Digital Engineering', seQ: 'AirAsia aircraft', lemmyQ: 'AirAsia maintenance', mastoTag: 'aviationmaintenance' },
-            { entityId: 'teleport', entityLabel: 'Teleport (Logistics)', q: '"Teleport AirAsia" OR "Teleport cargo" OR "Teleport delivery"', bskyQ: 'Teleport AirAsia', hnQ: 'Teleport AirAsia', seQ: 'AirAsia baggage cargo', lemmyQ: 'Teleport AirAsia', mastoTag: 'aircargo' }
+            { entityId: 'airasia', entityLabel: 'AirAsia (Airline)', q: '"AirAsia" OR "AirAsia X" OR "AskBo"', newsQ: '"AirAsia" flight OR airline OR "AirAsia X" OR KLIA2', bskyQ: 'AirAsia', hnQ: 'AirAsia', seQ: 'AirAsia', lemmyQ: 'AirAsia', mastoTag: 'airasia' },
+            { entityId: 'move', entityLabel: 'AirAsia MOVE', q: '"AirAsia MOVE" OR "AirAsia Superapp" OR "AirAsia app" OR "AirAsia booking" OR "BigPay AirAsia"', newsQ: '"AirAsia MOVE" OR "AirAsia Superapp" OR "AirAsia app" OR "BigPay AirAsia"', bskyQ: 'AirAsia MOVE', hnQ: 'AirAsia app', seQ: 'AirAsia booking', lemmyQ: 'AirAsia app', mastoTag: 'airasiamove' },
+            { entityId: 'santan', entityLabel: 'Santan', q: '"Santan AirAsia" OR "Pak Nasser" OR "AirAsia meal" OR "AirAsia food" OR "AirAsia nasi lemak"', newsQ: '"Santan AirAsia" OR "Pak Nasser" OR "AirAsia meal" OR "Santan inflight"', bskyQ: 'AirAsia meal', hnQ: 'AirAsia meal', seQ: 'AirAsia meal', lemmyQ: 'AirAsia food', mastoTag: 'airasia' },
+            { entityId: 'ade', entityLabel: 'ADE (Engineering)', q: '"Asia Digital Engineering" OR "ADE AirAsia" OR "AirAsia MRO" OR "AirAsia maintenance" OR "AirAsia hangar"', newsQ: '"Asia Digital Engineering" OR "ADE AirAsia" OR "AirAsia MRO" OR "AirAsia hangar"', bskyQ: 'Asia Digital Engineering', hnQ: 'Asia Digital Engineering', seQ: 'AirAsia baggage', lemmyQ: 'Asia Digital Engineering', mastoTag: 'airasia' },
+            { entityId: 'teleport', entityLabel: 'Teleport (Logistics)', q: '"Teleport AirAsia" OR "AirAsia cargo" OR "Teleport cargo" OR "Teleport logistics" OR "Capital A Teleport"', newsQ: '"Teleport AirAsia" OR "Teleport cargo" OR "Teleport logistics" OR "Capital A Teleport"', bskyQ: 'Teleport AirAsia', hnQ: 'Teleport AirAsia', seQ: 'AirAsia luggage', lemmyQ: 'Teleport AirAsia', mastoTag: 'airasia' }
           ];
 
           var collected = [];
           var seenIds = {};
           var seenTexts = {};
 
-          // Keep already-scraped real posts in memory so refreshes are additive & deduplicated
+          // Keep already-scraped real posts in memory only if they pass strict entity verification
           (state.liveScrapedPosts || []).forEach(function (existing) {
-            if (existing && existing.id && existing.externalUrl && !seenIds[existing.id]) {
-              var normTxt = String(existing.originalText || '').toLowerCase().slice(0, 90);
+            if (existing && existing.id && existing.externalUrl && existing.entityId && isStrictlyRelatedToEntity(existing.entityId, existing.originalText) && !seenIds[existing.id]) {
+              var normTxt = existing.entityId + ':' + String(existing.originalText || '').toLowerCase().slice(0, 90);
               seenIds[existing.id] = true;
               if (normTxt) seenTexts[normTxt] = true;
               collected.push(existing);
@@ -487,8 +591,12 @@
           });
 
           function addRealMention(item) {
-            if (!item || !item.id || seenIds[item.id]) return false;
-            var normTxt = String(item.originalText || '').toLowerCase().slice(0, 90);
+            if (!item || !item.id || !item.entityId || seenIds[item.id]) return false;
+            if (!isStrictlyRelatedToEntity(item.entityId, item.originalText)) {
+              state.noiseBlockedCount = (state.noiseBlockedCount || 0) + 1;
+              return false;
+            }
+            var normTxt = item.entityId + ':' + String(item.originalText || '').toLowerCase().slice(0, 90);
             if (normTxt && seenTexts[normTxt]) return false;
             seenIds[item.id] = true;
             if (normTxt) seenTexts[normTxt] = true;
@@ -520,7 +628,7 @@
               var arr = Array.isArray(payload) ? payload : (payload && Array.isArray(payload.mentions) ? payload.mentions : []);
               var added = false;
               arr.forEach(function (item) {
-                if (item && item.id && item.externalUrl && String(item.id).indexOf('LIVE-AA-0') === -1 && String(item.id).indexOf('LIVE-MV-0') === -1 && String(item.id).indexOf('LIVE-SN-0') === -1 && String(item.id).indexOf('LIVE-ADE-0') === -1 && String(item.id).indexOf('LIVE-TP-0') === -1) {
+                if (item && item.id && item.externalUrl && item.entityId && isStrictlyRelatedToEntity(item.entityId, item.originalText)) {
                   if (addRealMention(item)) added = true;
                 }
               });
@@ -530,7 +638,7 @@
 
           // 2. Platform 1: Reddit Public JSON Search API
           var redditFetches = queries.map(function (qObj) {
-            var url = 'https://www.reddit.com/search.json?q=' + encodeURIComponent(qObj.q) + '&sort=new&limit=20&raw_json=1';
+            var url = 'https://www.reddit.com/search.json?q=' + encodeURIComponent(qObj.q) + '&sort=new&limit=25&raw_json=1';
             return fetch(url)
               .then(function (r) { return r.ok ? r.json() : null; })
               .then(function (json) {
@@ -539,12 +647,10 @@
                 json.data.children.forEach(function (child) {
                   var d = child && child.data;
                   if (!d || !d.id) return;
-                  var postId = 'REAL-RD-' + d.id;
-                  var rawBody = ((d.title || '') + (d.selftext ? ' — ' + d.selftext : '')).replace(/\s+/g, ' ').trim();
+                  var rawBody = buildEntitySnippet(d.title || '', d.selftext || '', 360);
                   if (!rawBody) return;
-                  if (rawBody.length > 360) rawBody = rawBody.slice(0, 357) + '...';
-                  var cls = classifyLiveScrapedText(qObj.entityId, rawBody);
-                  if (!cls) return;
+                  var matchedEntities = getMatchingEntitiesForText(rawBody, qObj, queries);
+                  if (!matchedEntities.length) return;
                   var createdMs = (d.created_utc ? d.created_utc * 1000 : Date.now());
                   var minsAgo = Math.max(1, Math.round((Date.now() - createdMs) / 60000));
                   var ts = formatCrawledTimestamp(Date.now(), minsAgo);
@@ -552,35 +658,40 @@
                   var numComments = Math.max(0, Number(d.num_comments || 0));
                   var engagementScore = ups + numComments;
                   var highReach = ups >= 50 || numComments >= 25;
-                  if (addRealMention({
-                    id: postId,
-                    isLiveScraped: true,
-                    externalUrl: d.permalink ? ('https://www.reddit.com' + d.permalink) : ('https://www.reddit.com/comments/' + d.id),
-                    category: 'Mentions',
-                    mentionType: 'Reddit Thread (r/' + (d.subreddit || 'travel') + ')',
-                    digimindQuery: qObj.q,
-                    entityId: qObj.entityId,
-                    entityLabel: qObj.entityLabel,
-                    platform: 'Reddit',
-                    pillarCode: cls.pillarCode,
-                    sentiment: cls.sentiment,
-                    isHighReach: highReach,
-                    engagementLabel: highReach ? '🔥 High Activity' : '🟢 Live Reddit API',
-                    viewsCount: engagementScore,
-                    viewsFormatted: ups.toLocaleString() + ' Upvotes • ' + numComments.toLocaleString() + ' Comments',
-                    realMetricPrimary: ups.toLocaleString() + ' Upvotes',
-                    realMetricSecondary: numComments.toLocaleString() + ' Comments',
-                    realMetricTertiary: 'r/' + (d.subreddit || 'reddit'),
-                    authorHandle: 'u/' + (d.author || 'reddit_user'),
-                    minutesAgo: minsAgo,
-                    relativeTime: ts.relativeLabel,
-                    exactTimestamp: ts.exactTimestamp,
-                    detectedLanguage: 'English',
-                    isNonEnglish: false,
-                    originalText: rawBody,
-                    englishText: rawBody,
-                    keywords: cls.keywords
-                  })) added = true;
+                  matchedEntities.forEach(function (targetEnt) {
+                    var cls = classifyLiveScrapedText(targetEnt.entityId, rawBody);
+                    if (!cls) return;
+                    var postId = 'REAL-RD-' + targetEnt.entityId + '-' + d.id;
+                    if (addRealMention({
+                      id: postId,
+                      isLiveScraped: true,
+                      externalUrl: d.permalink ? ('https://www.reddit.com' + d.permalink) : ('https://www.reddit.com/comments/' + d.id),
+                      category: 'Mentions',
+                      mentionType: 'Reddit Thread (r/' + (d.subreddit || 'travel') + ')',
+                      digimindQuery: targetEnt.q,
+                      entityId: targetEnt.entityId,
+                      entityLabel: targetEnt.entityLabel,
+                      platform: 'Reddit',
+                      pillarCode: cls.pillarCode,
+                      sentiment: cls.sentiment,
+                      isHighReach: highReach,
+                      engagementLabel: highReach ? '🔥 High Activity' : '🟢 Live Reddit API',
+                      viewsCount: engagementScore,
+                      viewsFormatted: ups.toLocaleString() + ' Upvotes • ' + numComments.toLocaleString() + ' Comments',
+                      realMetricPrimary: ups.toLocaleString() + ' Upvotes',
+                      realMetricSecondary: numComments.toLocaleString() + ' Comments',
+                      realMetricTertiary: 'r/' + (d.subreddit || 'reddit'),
+                      authorHandle: 'u/' + (d.author || 'reddit_user'),
+                      minutesAgo: minsAgo,
+                      relativeTime: ts.relativeLabel,
+                      exactTimestamp: ts.exactTimestamp,
+                      detectedLanguage: 'English',
+                      isNonEnglish: false,
+                      originalText: rawBody,
+                      englishText: rawBody,
+                      keywords: cls.keywords
+                    })) added = true;
+                  });
                 });
                 if (added) commitProgress();
               })
@@ -589,7 +700,7 @@
 
           // 3. Platform 2: Google News RSS (via RSS2JSON CORS bridge)
           var newsFetches = queries.map(function (qObj) {
-            var rssUrl = 'https://news.google.com/rss/search?q=' + encodeURIComponent(qObj.q) + '&hl=en-MY&gl=MY&ceid=MY:en';
+            var rssUrl = 'https://news.google.com/rss/search?q=' + encodeURIComponent(qObj.newsQ || qObj.q) + '&hl=en-MY&gl=MY&ceid=MY:en';
             var apiUrl = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(rssUrl);
             return fetch(apiUrl)
               .then(function (r) { return r.ok ? r.json() : null; })
@@ -598,11 +709,10 @@
                 var added = false;
                 json.items.slice(0, 10).forEach(function (item, idx) {
                   if (!item || !item.title) return;
-                  var rawTitle = stripHtmlTags(item.title);
+                  var rawTitle = buildEntitySnippet(item.title, '', 360);
                   if (!rawTitle) return;
-                  var postId = 'REAL-GN-' + qObj.entityId + '-' + rawTitle.slice(0, 24).replace(/\W+/g, '').toLowerCase();
-                  var cls = classifyLiveScrapedText(qObj.entityId, rawTitle);
-                  if (!cls) return;
+                  var matchedEntities = getMatchingEntitiesForText(rawTitle, qObj, queries);
+                  if (!matchedEntities.length) return;
                   var pubMs = item.pubDate ? Date.parse(item.pubDate.replace(' ', 'T') + 'Z') : Date.now();
                   if (isNaN(pubMs)) pubMs = item.pubDate ? Date.parse(item.pubDate) : Date.now();
                   if (isNaN(pubMs)) pubMs = Date.now() - (idx + 1) * 3600000;
@@ -610,35 +720,40 @@
                   var ts = formatCrawledTimestamp(Date.now(), minsAgo);
                   var publisherParts = rawTitle.split(' - ');
                   var publisher = publisherParts.length > 1 ? publisherParts[publisherParts.length - 1].trim() : (item.author || 'News Desk');
-                  if (addRealMention({
-                    id: postId,
-                    isLiveScraped: true,
-                    externalUrl: item.link || 'https://news.google.com',
-                    category: 'Mentions',
-                    mentionType: 'Google News Article (' + publisher + ')',
-                    digimindQuery: qObj.q,
-                    entityId: qObj.entityId,
-                    entityLabel: qObj.entityLabel,
-                    platform: 'Google News',
-                    pillarCode: cls.pillarCode,
-                    sentiment: cls.sentiment,
-                    isHighReach: true,
-                    engagementLabel: '📰 Verified News Media',
-                    viewsCount: 100,
-                    viewsFormatted: 'Publisher: ' + publisher,
-                    realMetricPrimary: publisher,
-                    realMetricSecondary: 'Syndicated Article',
-                    realMetricTertiary: 'Google News RSS',
-                    authorHandle: publisher,
-                    minutesAgo: minsAgo,
-                    relativeTime: ts.relativeLabel,
-                    exactTimestamp: ts.exactTimestamp,
-                    detectedLanguage: 'English',
-                    isNonEnglish: false,
-                    originalText: rawTitle,
-                    englishText: rawTitle,
-                    keywords: cls.keywords
-                  })) added = true;
+                  matchedEntities.forEach(function (targetEnt) {
+                    var cls = classifyLiveScrapedText(targetEnt.entityId, rawTitle);
+                    if (!cls) return;
+                    var postId = 'REAL-GN-' + targetEnt.entityId + '-' + rawTitle.slice(0, 24).replace(/\W+/g, '').toLowerCase();
+                    if (addRealMention({
+                      id: postId,
+                      isLiveScraped: true,
+                      externalUrl: item.link || 'https://news.google.com',
+                      category: 'Mentions',
+                      mentionType: 'Google News Article (' + publisher + ')',
+                      digimindQuery: targetEnt.newsQ || targetEnt.q,
+                      entityId: targetEnt.entityId,
+                      entityLabel: targetEnt.entityLabel,
+                      platform: 'Google News',
+                      pillarCode: cls.pillarCode,
+                      sentiment: cls.sentiment,
+                      isHighReach: true,
+                      engagementLabel: '📰 Verified News Media',
+                      viewsCount: 100,
+                      viewsFormatted: 'Publisher: ' + publisher,
+                      realMetricPrimary: publisher,
+                      realMetricSecondary: 'Syndicated Article',
+                      realMetricTertiary: 'Google News RSS',
+                      authorHandle: publisher,
+                      minutesAgo: minsAgo,
+                      relativeTime: ts.relativeLabel,
+                      exactTimestamp: ts.exactTimestamp,
+                      detectedLanguage: 'English',
+                      isNonEnglish: false,
+                      originalText: rawTitle,
+                      englishText: rawTitle,
+                      keywords: cls.keywords
+                    })) added = true;
+                  });
                 });
                 if (added) commitProgress();
               })
@@ -647,7 +762,7 @@
 
           // 4. Platform 3: Bluesky Social Public AT Protocol Search API
           var bskyFetches = queries.map(function (qObj) {
-            var url = 'https://public.api.bsky.app/xrpc/app.bsky.feed.searchPosts?q=' + encodeURIComponent(qObj.bskyQ) + '&limit=15&sort=latest';
+            var url = 'https://public.api.bsky.app/xrpc/app.bsky.feed.searchPosts?q=' + encodeURIComponent(qObj.bskyQ) + '&limit=20&sort=latest';
             return fetch(url)
               .then(function (r) { return r.ok ? r.json() : null; })
               .then(function (json) {
@@ -655,14 +770,12 @@
                 var added = false;
                 json.posts.forEach(function (post) {
                   if (!post || !post.uri || !post.record) return;
-                  var rawText = String(post.record.text || '').replace(/\s+/g, ' ').trim();
+                  var rawText = buildEntitySnippet('', post.record.text || '', 360);
                   if (!rawText) return;
-                  if (rawText.length > 360) rawText = rawText.slice(0, 357) + '...';
-                  var cls = classifyLiveScrapedText(qObj.entityId, rawText);
-                  if (!cls) return;
+                  var matchedEntities = getMatchingEntitiesForText(rawText, qObj, queries);
+                  if (!matchedEntities.length) return;
                   var rkey = String(post.uri).split('/').pop();
                   var handle = (post.author && post.author.handle) ? post.author.handle : 'bsky.user';
-                  var postId = 'REAL-BSKY-' + rkey;
                   var createdMs = Date.parse(post.record.createdAt || post.indexedAt || '');
                   if (isNaN(createdMs)) createdMs = Date.now();
                   var minsAgo = Math.max(1, Math.round((Date.now() - createdMs) / 60000));
@@ -672,35 +785,40 @@
                   var replies = Math.max(0, Number(post.replyCount || 0));
                   var engScore = likes + reposts + replies;
                   var highReach = engScore >= 15;
-                  if (addRealMention({
-                    id: postId,
-                    isLiveScraped: true,
-                    externalUrl: 'https://bsky.app/profile/' + handle + '/post/' + rkey,
-                    category: 'Mentions',
-                    mentionType: 'Bluesky Microblog Post',
-                    digimindQuery: qObj.bskyQ,
-                    entityId: qObj.entityId,
-                    entityLabel: qObj.entityLabel,
-                    platform: 'Bluesky',
-                    pillarCode: cls.pillarCode,
-                    sentiment: cls.sentiment,
-                    isHighReach: highReach,
-                    engagementLabel: highReach ? '🔥 High Engagement' : '🦋 Live Bluesky API',
-                    viewsCount: engScore,
-                    viewsFormatted: likes + ' Likes • ' + reposts + ' Reposts • ' + replies + ' Replies',
-                    realMetricPrimary: likes + ' Likes',
-                    realMetricSecondary: reposts + ' Reposts',
-                    realMetricTertiary: replies + ' Replies',
-                    authorHandle: '@' + handle,
-                    minutesAgo: minsAgo,
-                    relativeTime: ts.relativeLabel,
-                    exactTimestamp: ts.exactTimestamp,
-                    detectedLanguage: 'English',
-                    isNonEnglish: false,
-                    originalText: rawText,
-                    englishText: rawText,
-                    keywords: cls.keywords
-                  })) added = true;
+                  matchedEntities.forEach(function (targetEnt) {
+                    var cls = classifyLiveScrapedText(targetEnt.entityId, rawText);
+                    if (!cls) return;
+                    var postId = 'REAL-BSKY-' + targetEnt.entityId + '-' + rkey;
+                    if (addRealMention({
+                      id: postId,
+                      isLiveScraped: true,
+                      externalUrl: 'https://bsky.app/profile/' + handle + '/post/' + rkey,
+                      category: 'Mentions',
+                      mentionType: 'Bluesky Microblog Post',
+                      digimindQuery: targetEnt.bskyQ,
+                      entityId: targetEnt.entityId,
+                      entityLabel: targetEnt.entityLabel,
+                      platform: 'Bluesky',
+                      pillarCode: cls.pillarCode,
+                      sentiment: cls.sentiment,
+                      isHighReach: highReach,
+                      engagementLabel: highReach ? '🔥 High Engagement' : '🦋 Live Bluesky API',
+                      viewsCount: engScore,
+                      viewsFormatted: likes + ' Likes • ' + reposts + ' Reposts • ' + replies + ' Replies',
+                      realMetricPrimary: likes + ' Likes',
+                      realMetricSecondary: reposts + ' Reposts',
+                      realMetricTertiary: replies + ' Replies',
+                      authorHandle: '@' + handle,
+                      minutesAgo: minsAgo,
+                      relativeTime: ts.relativeLabel,
+                      exactTimestamp: ts.exactTimestamp,
+                      detectedLanguage: 'English',
+                      isNonEnglish: false,
+                      originalText: rawText,
+                      englishText: rawText,
+                      keywords: cls.keywords
+                    })) added = true;
+                  });
                 });
                 if (added) commitProgress();
               })
@@ -708,8 +826,9 @@
           });
 
           // 5. Platform 4: Mastodon Fediverse Public Tag Timelines API
-          var mastoFetches = queries.map(function (qObj) {
-            var url = 'https://mastodon.social/api/v1/timelines/tag/' + encodeURIComponent(qObj.mastoTag) + '?limit=12';
+          var mastoTags = ['airasia', 'airasiamove', 'klia2'];
+          var mastoFetches = mastoTags.map(function (tag) {
+            var url = 'https://mastodon.social/api/v1/timelines/tag/' + encodeURIComponent(tag) + '?limit=20';
             return fetch(url)
               .then(function (r) { return r.ok ? r.json() : null; })
               .then(function (items) {
@@ -717,12 +836,10 @@
                 var added = false;
                 items.forEach(function (st) {
                   if (!st || !st.id || !st.content) return;
-                  var rawText = stripHtmlTags(st.content);
+                  var rawText = buildEntitySnippet('', st.content, 360);
                   if (!rawText) return;
-                  if (rawText.length > 360) rawText = rawText.slice(0, 357) + '...';
-                  var cls = classifyLiveScrapedText(qObj.entityId, rawText);
-                  if (!cls) return;
-                  var postId = 'REAL-MASTO-' + st.id;
+                  var matchedEntities = getMatchingEntitiesForText(rawText, queries[0], queries);
+                  if (!matchedEntities.length) return;
                   var createdMs = Date.parse(st.created_at || '');
                   if (isNaN(createdMs)) createdMs = Date.now();
                   var minsAgo = Math.max(1, Math.round((Date.now() - createdMs) / 60000));
@@ -732,35 +849,40 @@
                   var replies = Math.max(0, Number(st.replies_count || 0));
                   var engScore = favs + boosts + replies;
                   var acct = (st.account && (st.account.acct || st.account.username)) ? st.account.acct : 'mastodon_user';
-                  if (addRealMention({
-                    id: postId,
-                    isLiveScraped: true,
-                    externalUrl: st.url || ('https://mastodon.social/@' + acct + '/' + st.id),
-                    category: 'Mentions',
-                    mentionType: 'Mastodon Fediverse Post (#' + qObj.mastoTag + ')',
-                    digimindQuery: '#' + qObj.mastoTag,
-                    entityId: qObj.entityId,
-                    entityLabel: qObj.entityLabel,
-                    platform: 'Mastodon',
-                    pillarCode: cls.pillarCode,
-                    sentiment: cls.sentiment,
-                    isHighReach: engScore >= 10,
-                    engagementLabel: '🐘 Live Mastodon API',
-                    viewsCount: engScore,
-                    viewsFormatted: favs + ' Favs • ' + boosts + ' Boosts • ' + replies + ' Replies',
-                    realMetricPrimary: favs + ' Favourites',
-                    realMetricSecondary: boosts + ' Boosts',
-                    realMetricTertiary: replies + ' Replies',
-                    authorHandle: '@' + acct,
-                    minutesAgo: minsAgo,
-                    relativeTime: ts.relativeLabel,
-                    exactTimestamp: ts.exactTimestamp,
-                    detectedLanguage: 'English',
-                    isNonEnglish: false,
-                    originalText: rawText,
-                    englishText: rawText,
-                    keywords: cls.keywords
-                  })) added = true;
+                  matchedEntities.forEach(function (targetEnt) {
+                    var cls = classifyLiveScrapedText(targetEnt.entityId, rawText);
+                    if (!cls) return;
+                    var postId = 'REAL-MASTO-' + targetEnt.entityId + '-' + st.id;
+                    if (addRealMention({
+                      id: postId,
+                      isLiveScraped: true,
+                      externalUrl: st.url || ('https://mastodon.social/@' + acct + '/' + st.id),
+                      category: 'Mentions',
+                      mentionType: 'Mastodon Fediverse Post (#' + tag + ')',
+                      digimindQuery: '#' + tag,
+                      entityId: targetEnt.entityId,
+                      entityLabel: targetEnt.entityLabel,
+                      platform: 'Mastodon',
+                      pillarCode: cls.pillarCode,
+                      sentiment: cls.sentiment,
+                      isHighReach: engScore >= 10,
+                      engagementLabel: '🐘 Live Mastodon API',
+                      viewsCount: engScore,
+                      viewsFormatted: favs + ' Favs • ' + boosts + ' Boosts • ' + replies + ' Replies',
+                      realMetricPrimary: favs + ' Favourites',
+                      realMetricSecondary: boosts + ' Boosts',
+                      realMetricTertiary: replies + ' Replies',
+                      authorHandle: '@' + acct,
+                      minutesAgo: minsAgo,
+                      relativeTime: ts.relativeLabel,
+                      exactTimestamp: ts.exactTimestamp,
+                      detectedLanguage: 'English',
+                      isNonEnglish: false,
+                      originalText: rawText,
+                      englishText: rawText,
+                      keywords: cls.keywords
+                    })) added = true;
+                  });
                 });
                 if (added) commitProgress();
               })
@@ -768,8 +890,8 @@
           });
 
           // 6. Platform 5: Hacker News Algolia Real-Time Search API
-          var hnFetches = queries.map(function (qObj) {
-            var url = 'https://hn.algolia.com/api/v1/search_by_date?query=' + encodeURIComponent(qObj.hnQ) + '&hitsPerPage=12';
+          var hnFetches = queries.slice(0, 3).map(function (qObj) {
+            var url = 'https://hn.algolia.com/api/v1/search_by_date?query=' + encodeURIComponent('"' + qObj.hnQ + '"') + '&hitsPerPage=15';
             return fetch(url)
               .then(function (r) { return r.ok ? r.json() : null; })
               .then(function (json) {
@@ -777,12 +899,10 @@
                 var added = false;
                 json.hits.forEach(function (hit) {
                   if (!hit || !hit.objectID) return;
-                  var rawText = stripHtmlTags(hit.title || hit.comment_text || hit.story_title || '');
+                  var rawText = buildEntitySnippet(hit.title || hit.story_title || '', hit.comment_text || '', 360);
                   if (!rawText) return;
-                  if (rawText.length > 360) rawText = rawText.slice(0, 357) + '...';
-                  var cls = classifyLiveScrapedText(qObj.entityId, rawText);
-                  if (!cls) return;
-                  var postId = 'REAL-HN-' + hit.objectID;
+                  var matchedEntities = getMatchingEntitiesForText(rawText, qObj, queries);
+                  if (!matchedEntities.length) return;
                   var createdMs = hit.created_at_i ? hit.created_at_i * 1000 : Date.parse(hit.created_at || '');
                   if (isNaN(createdMs)) createdMs = Date.now();
                   var minsAgo = Math.max(1, Math.round((Date.now() - createdMs) / 60000));
@@ -790,35 +910,40 @@
                   var pts = Math.max(0, Number(hit.points || 0));
                   var cmts = Math.max(0, Number(hit.num_comments || 0));
                   var engScore = pts + cmts;
-                  if (addRealMention({
-                    id: postId,
-                    isLiveScraped: true,
-                    externalUrl: 'https://news.ycombinator.com/item?id=' + hit.objectID,
-                    category: 'Mentions',
-                    mentionType: hit.title ? 'Hacker News Story' : 'Hacker News Discussion Comment',
-                    digimindQuery: qObj.hnQ,
-                    entityId: qObj.entityId,
-                    entityLabel: qObj.entityLabel,
-                    platform: 'Hacker News',
-                    pillarCode: cls.pillarCode,
-                    sentiment: cls.sentiment,
-                    isHighReach: pts >= 25 || cmts >= 15,
-                    engagementLabel: '🟧 Live Hacker News API',
-                    viewsCount: engScore,
-                    viewsFormatted: pts + ' Points • ' + cmts + ' Comments',
-                    realMetricPrimary: pts + ' Points',
-                    realMetricSecondary: cmts + ' Comments',
-                    realMetricTertiary: 'YC Hacker News',
-                    authorHandle: 'hn/' + (hit.author || 'yc_reader'),
-                    minutesAgo: minsAgo,
-                    relativeTime: ts.relativeLabel,
-                    exactTimestamp: ts.exactTimestamp,
-                    detectedLanguage: 'English',
-                    isNonEnglish: false,
-                    originalText: rawText,
-                    englishText: rawText,
-                    keywords: cls.keywords
-                  })) added = true;
+                  matchedEntities.forEach(function (targetEnt) {
+                    var cls = classifyLiveScrapedText(targetEnt.entityId, rawText);
+                    if (!cls) return;
+                    var postId = 'REAL-HN-' + targetEnt.entityId + '-' + hit.objectID;
+                    if (addRealMention({
+                      id: postId,
+                      isLiveScraped: true,
+                      externalUrl: 'https://news.ycombinator.com/item?id=' + hit.objectID,
+                      category: 'Mentions',
+                      mentionType: hit.title ? 'Hacker News Story' : 'Hacker News Discussion Comment',
+                      digimindQuery: targetEnt.hnQ,
+                      entityId: targetEnt.entityId,
+                      entityLabel: targetEnt.entityLabel,
+                      platform: 'Hacker News',
+                      pillarCode: cls.pillarCode,
+                      sentiment: cls.sentiment,
+                      isHighReach: pts >= 25 || cmts >= 15,
+                      engagementLabel: '🟧 Live Hacker News API',
+                      viewsCount: engScore,
+                      viewsFormatted: pts + ' Points • ' + cmts + ' Comments',
+                      realMetricPrimary: pts + ' Points',
+                      realMetricSecondary: cmts + ' Comments',
+                      realMetricTertiary: 'YC Hacker News',
+                      authorHandle: 'hn/' + (hit.author || 'yc_reader'),
+                      minutesAgo: minsAgo,
+                      relativeTime: ts.relativeLabel,
+                      exactTimestamp: ts.exactTimestamp,
+                      detectedLanguage: 'English',
+                      isNonEnglish: false,
+                      originalText: rawText,
+                      englishText: rawText,
+                      keywords: cls.keywords
+                    })) added = true;
+                  });
                 });
                 if (added) commitProgress();
               })
@@ -827,7 +952,7 @@
 
           // 7. Platform 6: Travel StackExchange Public Q&A API
           var seFetches = queries.slice(0, 3).map(function (qObj) {
-            var url = 'https://api.stackexchange.com/2.3/search/advanced?order=desc&sort=creation&q=' + encodeURIComponent(qObj.seQ) + '&site=travel&pagesize=10';
+            var url = 'https://api.stackexchange.com/2.3/search/advanced?order=desc&sort=creation&q=' + encodeURIComponent(qObj.seQ) + '&site=travel&pagesize=15';
             return fetch(url)
               .then(function (r) { return r.ok ? r.json() : null; })
               .then(function (json) {
@@ -835,10 +960,10 @@
                 var added = false;
                 json.items.forEach(function (item) {
                   if (!item || !item.question_id || !item.title) return;
-                  var rawTitle = stripHtmlTags(item.title) + (Array.isArray(item.tags) && item.tags.length ? ' [Tags: ' + item.tags.join(', ') + ']' : '');
-                  var cls = classifyLiveScrapedText(qObj.entityId, rawTitle);
-                  if (!cls) return;
-                  var postId = 'REAL-SE-' + item.question_id;
+                  var rawTitle = buildEntitySnippet(item.title, (Array.isArray(item.tags) && item.tags.length ? '[Tags: ' + item.tags.join(', ') + ']' : ''), 360);
+                  if (!rawTitle) return;
+                  var matchedEntities = getMatchingEntitiesForText(rawTitle, qObj, queries);
+                  if (!matchedEntities.length) return;
                   var createdMs = item.creation_date ? item.creation_date * 1000 : Date.now();
                   var minsAgo = Math.max(1, Math.round((Date.now() - createdMs) / 60000));
                   var ts = formatCrawledTimestamp(Date.now(), minsAgo);
@@ -846,35 +971,40 @@
                   var answers = Math.max(0, Number(item.answer_count || 0));
                   var score = Number(item.score || 0);
                   var author = (item.owner && item.owner.display_name) ? item.owner.display_name : 'travel_se_user';
-                  if (addRealMention({
-                    id: postId,
-                    isLiveScraped: true,
-                    externalUrl: item.link || ('https://travel.stackexchange.com/questions/' + item.question_id),
-                    category: 'Mentions',
-                    mentionType: 'Travel StackExchange Q&A Thread',
-                    digimindQuery: qObj.seQ,
-                    entityId: qObj.entityId,
-                    entityLabel: qObj.entityLabel,
-                    platform: 'Travel SE',
-                    pillarCode: cls.pillarCode,
-                    sentiment: cls.sentiment,
-                    isHighReach: views >= 1000 || score >= 5,
-                    engagementLabel: '✈️ Live Travel SE API',
-                    viewsCount: views,
-                    viewsFormatted: views.toLocaleString() + ' Views • ' + answers + ' Answers • Score ' + score,
-                    realMetricPrimary: views.toLocaleString() + ' Real Views',
-                    realMetricSecondary: answers + ' Answers',
-                    realMetricTertiary: 'Score: ' + score,
-                    authorHandle: author,
-                    minutesAgo: minsAgo,
-                    relativeTime: ts.relativeLabel,
-                    exactTimestamp: ts.exactTimestamp,
-                    detectedLanguage: 'English',
-                    isNonEnglish: false,
-                    originalText: rawTitle,
-                    englishText: rawTitle,
-                    keywords: cls.keywords
-                  })) added = true;
+                  matchedEntities.forEach(function (targetEnt) {
+                    var cls = classifyLiveScrapedText(targetEnt.entityId, rawTitle);
+                    if (!cls) return;
+                    var postId = 'REAL-SE-' + targetEnt.entityId + '-' + item.question_id;
+                    if (addRealMention({
+                      id: postId,
+                      isLiveScraped: true,
+                      externalUrl: item.link || ('https://travel.stackexchange.com/questions/' + item.question_id),
+                      category: 'Mentions',
+                      mentionType: 'Travel StackExchange Q&A Thread',
+                      digimindQuery: targetEnt.seQ,
+                      entityId: targetEnt.entityId,
+                      entityLabel: targetEnt.entityLabel,
+                      platform: 'Travel SE',
+                      pillarCode: cls.pillarCode,
+                      sentiment: cls.sentiment,
+                      isHighReach: views >= 1000 || score >= 5,
+                      engagementLabel: '✈️ Live Travel SE API',
+                      viewsCount: views,
+                      viewsFormatted: views.toLocaleString() + ' Views • ' + answers + ' Answers • Score ' + score,
+                      realMetricPrimary: views.toLocaleString() + ' Real Views',
+                      realMetricSecondary: answers + ' Answers',
+                      realMetricTertiary: 'Score: ' + score,
+                      authorHandle: author,
+                      minutesAgo: minsAgo,
+                      relativeTime: ts.relativeLabel,
+                      exactTimestamp: ts.exactTimestamp,
+                      detectedLanguage: 'English',
+                      isNonEnglish: false,
+                      originalText: rawTitle,
+                      englishText: rawTitle,
+                      keywords: cls.keywords
+                    })) added = true;
+                  });
                 });
                 if (added) commitProgress();
               })
@@ -883,7 +1013,7 @@
 
           // 8. Platform 7: Lemmy Fediverse Public Search API
           var lemmyFetches = queries.slice(0, 3).map(function (qObj) {
-            var url = 'https://lemmy.world/api/v3/search?q=' + encodeURIComponent(qObj.lemmyQ) + '&type_=Posts&sort=New&limit=10';
+            var url = 'https://lemmy.world/api/v3/search?q=' + encodeURIComponent(qObj.lemmyQ) + '&type_=Posts&sort=New&limit=15';
             return fetch(url)
               .then(function (r) { return r.ok ? r.json() : null; })
               .then(function (json) {
@@ -893,12 +1023,10 @@
                   var p = entry && entry.post;
                   var counts = entry && entry.counts;
                   if (!p || !p.id || !p.name) return;
-                  var rawBody = stripHtmlTags(p.name + (p.body ? ' — ' + p.body : ''));
+                  var rawBody = buildEntitySnippet(p.name, p.body || '', 360);
                   if (!rawBody) return;
-                  if (rawBody.length > 360) rawBody = rawBody.slice(0, 357) + '...';
-                  var cls = classifyLiveScrapedText(qObj.entityId, rawBody);
-                  if (!cls) return;
-                  var postId = 'REAL-LEMMY-' + p.id;
+                  var matchedEntities = getMatchingEntitiesForText(rawBody, qObj, queries);
+                  if (!matchedEntities.length) return;
                   var createdMs = Date.parse(p.published || '');
                   if (isNaN(createdMs)) createdMs = Date.now();
                   var minsAgo = Math.max(1, Math.round((Date.now() - createdMs) / 60000));
@@ -907,35 +1035,40 @@
                   var cmts = counts ? Math.max(0, Number(counts.comments || 0)) : 0;
                   var creator = (entry.creator && entry.creator.name) ? entry.creator.name : 'lemmy_user';
                   var comm = (entry.community && entry.community.name) ? entry.community.name : 'lemmy';
-                  if (addRealMention({
-                    id: postId,
-                    isLiveScraped: true,
-                    externalUrl: p.ap_id || ('https://lemmy.world/post/' + p.id),
-                    category: 'Mentions',
-                    mentionType: 'Lemmy Community Thread (c/' + comm + ')',
-                    digimindQuery: qObj.lemmyQ,
-                    entityId: qObj.entityId,
-                    entityLabel: qObj.entityLabel,
-                    platform: 'Lemmy',
-                    pillarCode: cls.pillarCode,
-                    sentiment: cls.sentiment,
-                    isHighReach: (score + cmts) >= 15,
-                    engagementLabel: '🌐 Live Lemmy Fediverse',
-                    viewsCount: score + cmts,
-                    viewsFormatted: score + ' Score • ' + cmts + ' Comments',
-                    realMetricPrimary: score + ' Score',
-                    realMetricSecondary: cmts + ' Comments',
-                    realMetricTertiary: 'c/' + comm,
-                    authorHandle: '@' + creator,
-                    minutesAgo: minsAgo,
-                    relativeTime: ts.relativeLabel,
-                    exactTimestamp: ts.exactTimestamp,
-                    detectedLanguage: 'English',
-                    isNonEnglish: false,
-                    originalText: rawBody,
-                    englishText: rawBody,
-                    keywords: cls.keywords
-                  })) added = true;
+                  matchedEntities.forEach(function (targetEnt) {
+                    var cls = classifyLiveScrapedText(targetEnt.entityId, rawBody);
+                    if (!cls) return;
+                    var postId = 'REAL-LEMMY-' + targetEnt.entityId + '-' + p.id;
+                    if (addRealMention({
+                      id: postId,
+                      isLiveScraped: true,
+                      externalUrl: p.ap_id || ('https://lemmy.world/post/' + p.id),
+                      category: 'Mentions',
+                      mentionType: 'Lemmy Community Thread (c/' + comm + ')',
+                      digimindQuery: targetEnt.lemmyQ,
+                      entityId: targetEnt.entityId,
+                      entityLabel: targetEnt.entityLabel,
+                      platform: 'Lemmy',
+                      pillarCode: cls.pillarCode,
+                      sentiment: cls.sentiment,
+                      isHighReach: (score + cmts) >= 15,
+                      engagementLabel: '🌐 Live Lemmy Fediverse',
+                      viewsCount: score + cmts,
+                      viewsFormatted: score + ' Score • ' + cmts + ' Comments',
+                      realMetricPrimary: score + ' Score',
+                      realMetricSecondary: cmts + ' Comments',
+                      realMetricTertiary: 'c/' + comm,
+                      authorHandle: '@' + creator,
+                      minutesAgo: minsAgo,
+                      relativeTime: ts.relativeLabel,
+                      exactTimestamp: ts.exactTimestamp,
+                      detectedLanguage: 'English',
+                      isNonEnglish: false,
+                      originalText: rawBody,
+                      englishText: rawBody,
+                      keywords: cls.keywords
+                    })) added = true;
+                  });
                 });
                 if (added) commitProgress();
               })
@@ -1137,7 +1270,9 @@
             document.body.classList.add('theme-dim');
           }
 
-          var allLive = Array.isArray(state.liveScrapedPosts) ? state.liveScrapedPosts : [];
+          var allLive = (Array.isArray(state.liveScrapedPosts) ? state.liveScrapedPosts : []).filter(function (p) {
+            return p && p.entityId && p.originalText && isStrictlyRelatedToEntity(p.entityId, p.originalText);
+          });
 
           var nowMs = Date.now();
           var normalizedLive = allLive.map(function (p) {
@@ -1235,11 +1370,17 @@
               : ('Zero negative escalations recorded in ' + dr.label + '; continue monitoring live public feeds across ' + topPlatformObj.id + ' and Google News.'))
             : 'Click "Last 30 Days" or "↻ Sync Now" above to inspect all verified real-time mentions across all 7 public platforms.';
 
+          var seenStreamUrls = {};
           var filteredPosts = activeDatePosts.filter(function (p) {
             if (state.streamScope === 'entity' && p.entityId !== state.entityId) return false;
             if (state.streamPillar !== 'ALL' && p.pillarCode !== state.streamPillar) return false;
             if (state.streamSentiment !== 'ALL' && p.sentiment !== state.streamSentiment) return false;
             if (state.streamPlatform !== 'ALL' && p.platform !== state.streamPlatform) return false;
+            if (state.streamScope === 'all') {
+              var dedupKey = (p.externalUrl || '') + '|' + String(p.originalText || '').toLowerCase().slice(0, 80);
+              if (seenStreamUrls[dedupKey]) return false;
+              seenStreamUrls[dedupKey] = true;
+            }
             return true;
           }).sort(function (a, b) {
             if (state.streamSort === 'impact') {
