@@ -1064,6 +1064,20 @@
           return results;
         }
 
+        var REFRESH_INTERVAL_SECONDS = 300; // 5 minutes
+
+        function formatSyncClock(d) {
+          var pad = function (n) { return String(n).padStart(2, '0'); };
+          return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) + ' MYT';
+        }
+
+        function formatCountdownMMSS(totalSec) {
+          var s = Math.max(0, totalSec | 0);
+          var mins = Math.floor(s / 60);
+          var secs = s % 60;
+          return String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+        }
+
         var state = {
           entityId: 'airasia',
           dateRangeId: '7d',
@@ -1072,6 +1086,10 @@
           comparePrior: true,
           execMode: true,
           themeMode: 'light',
+          autoRefreshEnabled: true,
+          secondsToRefresh: REFRESH_INTERVAL_SECONDS,
+          lastSyncedText: formatSyncClock(new Date()),
+          refreshCycle: 0,
           briefingCollapsed: false,
           streamScope: 'entity', // 'entity' (Active Entity) or 'all' (All 5 Group Entities)
           streamPillar: 'ALL',
@@ -1400,6 +1418,17 @@
                     '</div>' +
                   '</div>' +
                   '<div class="flex flex-wrap items-center gap-2.5">' +
+                    '<div class="inline-flex flex-wrap items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs">' +
+                      '<span class="inline-flex items-center gap-1.5 font-extrabold text-emerald-400">' +
+                        '<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>' +
+                        '<span>Auto-Refresh: Every 5m</span>' +
+                      '</span>' +
+                      '<span class="text-slate-400">•</span>' +
+                      '<span class="text-slate-300 font-semibold">Next in <strong id="auto-refresh-countdown" class="font-mono text-white">' + formatCountdownMMSS(state.secondsToRefresh) + '</strong></span>' +
+                      '<span class="text-slate-400 hidden sm:inline">•</span>' +
+                      '<span class="text-slate-400 hidden sm:inline">Last Synced: <strong id="last-synced-time" class="text-slate-200">' + state.lastSyncedText + '</strong></span>' +
+                      '<button type="button" id="btn-sync-now" class="ml-1 px-2 py-0.5 rounded-lg bg-[#E11D2B]/15 hover:bg-[#E11D2B] text-rose-300 hover:text-white border border-[#E11D2B]/40 font-extrabold transition-all" title="Refresh crawled mentions and KPIs immediately">↻ Sync Now</button>' +
+                    '</div>' +
                     '<div class="inline-flex items-center p-1 rounded-xl bg-slate-900 border border-slate-700 gap-1" role="group" aria-label="Theme Mode">' +
                       '<button type="button" data-theme-mode="light" class="px-3 py-1.5 rounded-lg text-xs font-extrabold inline-flex items-center gap-1.5 transition-all ' + (state.themeMode === 'light' ? 'bg-[#E11D2B] text-white shadow-md' : 'text-slate-300 hover:bg-slate-800') + '">' +
                         '<span>☀️</span><span>Light Mode</span>' +
@@ -1719,6 +1748,15 @@
               render();
             };
           });
+          var btnSyncNow = document.getElementById('btn-sync-now');
+          if (btnSyncNow) {
+            btnSyncNow.onclick = function () {
+              state.secondsToRefresh = REFRESH_INTERVAL_SECONDS;
+              state.lastSyncedText = formatSyncClock(new Date());
+              state.refreshCycle += 1;
+              render();
+            };
+          }
           var btnCompare = document.getElementById('btn-compare');
           if (btnCompare) btnCompare.onclick = function () { state.comparePrior = !state.comparePrior; render(); };
           var btnExec = document.getElementById('btn-exec');
@@ -1831,6 +1869,20 @@
           var postModalBackdrop = document.getElementById('post-modal-backdrop');
           if (postModalBackdrop) postModalBackdrop.onclick = function () { state.activePostId = null; render(); };
         }
+
+        setInterval(function () {
+          if (!state.autoRefreshEnabled) return;
+          state.secondsToRefresh -= 1;
+          if (state.secondsToRefresh <= 0) {
+            state.secondsToRefresh = REFRESH_INTERVAL_SECONDS;
+            state.lastSyncedText = formatSyncClock(new Date());
+            state.refreshCycle += 1;
+            render();
+          } else {
+            var cdEl = document.getElementById('auto-refresh-countdown');
+            if (cdEl) cdEl.textContent = formatCountdownMMSS(state.secondsToRefresh);
+          }
+        }, 1000);
 
         render();
       })();
