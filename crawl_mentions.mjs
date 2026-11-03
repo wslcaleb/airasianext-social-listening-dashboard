@@ -14,9 +14,27 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { scrapeXiaoHongShu } from '../.agents/skills/xiaohongshu-scraper/scripts/xhs_scraper.mjs';
-import { scrapeThreads } from '../.agents/skills/threadscraper/scripts/threads_scraper.mjs';
-import { scrapeRemainingPlatformsWithPlaywright } from '../.agents/skills/multi-platform-playwright-crawler/scripts/playwright_social_scraper.mjs';
+async function loadSkillScrapers() {
+  let scrapeXiaoHongShu;
+  let scrapeThreads;
+  let scrapeRemainingPlatformsWithPlaywright;
+  try {
+    ({ scrapeXiaoHongShu } = await import('../.agents/skills/xiaohongshu-scraper/scripts/xhs_scraper.mjs'));
+  } catch {
+    ({ scrapeXiaoHongShu } = await import('./xhs_scraper.mjs'));
+  }
+  try {
+    ({ scrapeThreads } = await import('../.agents/skills/threadscraper/scripts/threads_scraper.mjs'));
+  } catch {
+    ({ scrapeThreads } = await import('./threads_scraper.mjs'));
+  }
+  try {
+    ({ scrapeRemainingPlatformsWithPlaywright } = await import('../.agents/skills/multi-platform-playwright-crawler/scripts/playwright_social_scraper.mjs'));
+  } catch {
+    ({ scrapeRemainingPlatformsWithPlaywright } = await import('./playwright_social_scraper.mjs'));
+  }
+  return { scrapeXiaoHongShu, scrapeThreads, scrapeRemainingPlatformsWithPlaywright };
+}
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUTPUT_PATH = path.resolve(__dirname, '..', 'mentions.json');
@@ -396,6 +414,7 @@ async function main() {
 
   if (browser) {
     try {
+      const { scrapeXiaoHongShu, scrapeThreads, scrapeRemainingPlatformsWithPlaywright } = await loadSkillScrapers();
       const xhsNotes = await scrapeXiaoHongShu({ browser });
       xhsNotes.forEach((n, i) => ingestRawSkillMention(n, i));
 
