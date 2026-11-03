@@ -4,8 +4,8 @@
  * Modeled on galihkjaya/threadscraper
  *
  * Extracts public Meta Threads posts without login via:
- *  1. Playwright extraction of <script type="application/json" data-sjs> Relay payloads (thread_items)
- *  2. Playwright DOM [data-pressable-container="true"] post extraction on public profiles
+ *  1. Playwright extraction of <script type="application/json" data-sjs> Relay payloads (thread_items + post.taken_at)
+ *  2. Playwright DOM [data-pressable-container="true"] post extraction with <time datetime>
  *  3. Playwright search-indexed site:threads.net discovery across all 5 AirAsia Group entities
  */
 
@@ -57,7 +57,7 @@ export async function scrapeThreads({ browser } = {}) {
   const seenKeys = new Set();
 
   function pushThread(item) {
-    if (!item || (!item.title && !item.body)) return;
+    if (!item || (!item.title && !item.body) || !item.publishedAt) return;
     const key = `${item.entityId}|${(item.url || '')}|${String(item.body || item.title).slice(0, 70)}`;
     if (seenKeys.has(key)) return;
     seenKeys.add(key);
@@ -93,14 +93,16 @@ export async function scrapeThreads({ browser } = {}) {
                 for (const ti of obj.thread_items) {
                   const post = ti?.post;
                   const text = post?.caption?.text;
-                  if (text && text.length > 15) {
+                  const takenAtSec = Number(post?.taken_at || 0);
+                  if (text && text.length > 15 && takenAtSec > 0) {
                     const user = post?.user?.username || defaultHandle;
                     const code = post?.code || '';
-                    const likes = Number(post?.like_count || 85);
+                    const likes = Number(post?.like_count || 0);
                     posts.push({
                       text,
                       author: `@${user}`,
                       likes,
+                      publishedAt: takenAtSec * 1000,
                       url: code ? `https://www.threads.net/@${user}/post/${code}` : `https://www.threads.net/@${user}`
                     });
                   }
@@ -118,16 +120,19 @@ export async function scrapeThreads({ browser } = {}) {
               } catch {}
             });
 
-            // DOM fallback for visible thread containers
+            // DOM fallback for visible thread containers with <time datetime>
             document.querySelectorAll('[data-pressable-container="true"]').forEach((el) => {
               const txt = el.innerText ? el.innerText.replace(/\s+/g, ' ').trim() : '';
-              if (txt.length > 25) {
+              const timeEl = el.querySelector('time');
+              const dtAttr = timeEl ? (timeEl.getAttribute('datetime') || timeEl.textContent.trim()) : '';
+              if (txt.length > 25 && dtAttr) {
                 const postLink = el.querySelector('a[href*="/post/"]');
                 const href = postLink ? postLink.getAttribute('href') : '';
                 posts.push({
                   text: txt.slice(0, 360),
                   author: `@${defaultHandle}`,
-                  likes: 95,
+                  likes: 0,
+                  publishedAt: dtAttr,
                   url: href ? (href.startsWith('http') ? href : `https://www.threads.net${href}`) : `https://www.threads.net/@${defaultHandle}`
                 });
               }
@@ -146,6 +151,7 @@ export async function scrapeThreads({ browser } = {}) {
               url: p.url,
               author: p.author,
               likes: p.likes,
+              publishedAt: p.publishedAt,
               digimindQuery: `site:threads.net "@${target.handle}"`
             });
           }
@@ -162,15 +168,17 @@ export async function scrapeThreads({ browser } = {}) {
             document.querySelectorAll('.result, .web-result').forEach((row) => {
               const a = row.querySelector('a.result__a');
               const snip = row.querySelector('.result__snippet');
+              const tsEl = row.querySelector('.result__timestamp, time');
               if (!a) return;
               const title = a.textContent.trim();
               const snippet = snip ? snip.textContent.trim() : '';
+              const tsText = tsEl ? (tsEl.getAttribute('datetime') || tsEl.textContent.trim()) : '';
               let href = a.getAttribute('href') || '';
               const uddgMatch = href.match(/[?&]uddg=([^&]+)/);
               if (uddgMatch) {
                 try { href = decodeURIComponent(uddgMatch[1]); } catch {}
               }
-              if (title || snippet) out.push({ title, snippet, url: href });
+              if (title || snippet) out.push({ title, snippet, url: href, publishedAt: tsText || snippet });
             });
             return out;
           });
@@ -184,7 +192,8 @@ export async function scrapeThreads({ browser } = {}) {
               body: sp.snippet,
               url: sp.url && sp.url.includes('threads.net') ? sp.url : target.profileUrl,
               author: `@${target.handle}`,
-              likes: 110,
+              likes: 0,
+              publishedAt: sp.publishedAt,
               digimindQuery: target.searchQuery
             });
           }

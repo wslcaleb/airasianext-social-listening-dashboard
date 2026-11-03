@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
  * Multi-Platform Unauthenticated Playwright Scraper
- * Crawls Facebook, X, Instagram, TikTok, Reddit, YouTube, and LinkedIn without logging in.
+ * Crawls Facebook, X, Instagram, TikTok, Reddit, YouTube, and LinkedIn without logging in,
+ * extracting authentic publication timestamps (publishedAt) from SSR JSON and DOM <time> elements.
  */
 
 const ENTITY_CONFIGS = [
@@ -69,16 +70,18 @@ async function extractDuckDuckGoSiteResults(page, siteDomain, queryText) {
       document.querySelectorAll('.result, .web-result').forEach((row) => {
         const a = row.querySelector('a.result__a');
         const snip = row.querySelector('.result__snippet');
+        const tsEl = row.querySelector('.result__timestamp, time');
         if (!a) return;
         const title = a.textContent.trim();
         const body = snip ? snip.textContent.trim() : '';
+        const tsText = tsEl ? (tsEl.getAttribute('datetime') || tsEl.textContent.trim()) : '';
         let href = a.getAttribute('href') || '';
         const m = href.match(/[?&]uddg=([^&]+)/);
         if (m) {
           try { href = decodeURIComponent(m[1]); } catch {}
         }
         if ((title || body) && (!domain || href.includes(domain))) {
-          items.push({ title, body, url: href });
+          items.push({ title, body, url: href, publishedAt: tsText || body });
         }
       });
       return items;
@@ -98,7 +101,7 @@ export async function scrapeRemainingPlatformsWithPlaywright({ browser } = {}) {
   const seen = new Set();
 
   function addRaw(item) {
-    if (!item || (!item.title && !item.body)) return;
+    if (!item || (!item.title && !item.body) || !item.publishedAt) return;
     const key = `${item.platform}|${item.entityId}|${String(item.title || item.body).slice(0, 75)}`;
     if (seen.has(key)) return;
     seen.add(key);
@@ -128,16 +131,18 @@ export async function scrapeRemainingPlatformsWithPlaywright({ browser } = {}) {
         await page.goto(ent.fbPage, { waitUntil: 'domcontentloaded', timeout: 11000 });
         await page.waitForTimeout(900);
         const fbPosts = await page.evaluate((pageUrl) => {
-          // Dismiss unauthenticated login popup overlay
           const closeBtn = document.querySelector('[aria-label="Close"], [role="dialog"] [aria-label="Close"]');
           if (closeBtn) {
             try { closeBtn.click(); } catch {}
           }
           const out = [];
-          document.querySelectorAll('[data-ad-preview="message"], [data-ad-comet-preview="message"], div[dir="auto"]').forEach((el) => {
+          document.querySelectorAll('[data-ad-preview="message"], [data-ad-comet-preview="message"]').forEach((el) => {
             const txt = el.innerText ? el.innerText.replace(/\s+/g, ' ').trim() : '';
-            if (txt.length > 35) {
-              out.push({ text: txt.slice(0, 360), url: pageUrl });
+            const article = el.closest('[role="article"]') || el.parentElement;
+            const timeEl = article ? article.querySelector('abbr[data-utime], time[datetime], a[aria-label*="ago"], span[id]') : null;
+            const utime = timeEl ? (timeEl.getAttribute('data-utime') ? Number(timeEl.getAttribute('data-utime')) * 1000 : (timeEl.getAttribute('datetime') || timeEl.innerText)) : null;
+            if (txt.length > 35 && utime) {
+              out.push({ text: txt.slice(0, 360), url: pageUrl, publishedAt: utime });
             }
           });
           return out.slice(0, 6);
@@ -152,7 +157,8 @@ export async function scrapeRemainingPlatformsWithPlaywright({ browser } = {}) {
             body: p.text,
             url: p.url,
             author: ent.fbPage.split('/').pop(),
-            metrics: 420,
+            metrics: 0,
+            publishedAt: p.publishedAt,
             digimindQuery: `site:facebook.com "${ent.shortQ}"`
           });
         }
@@ -168,7 +174,8 @@ export async function scrapeRemainingPlatformsWithPlaywright({ browser } = {}) {
           body: item.body,
           url: item.url || ent.fbPage,
           author: 'Facebook Public Page',
-          metrics: 350,
+          metrics: 0,
+          publishedAt: item.publishedAt,
           digimindQuery: `site:facebook.com "${ent.shortQ}"`
         });
       }
@@ -188,12 +195,13 @@ export async function scrapeRemainingPlatformsWithPlaywright({ browser } = {}) {
               const entries = json?.props?.pageProps?.timeline?.entries || [];
               for (const entry of entries) {
                 const tweet = entry?.content?.tweet;
-                if (tweet && tweet.full_text) {
+                if (tweet && tweet.full_text && tweet.created_at) {
                   out.push({
                     id: tweet.id_str || '',
                     text: tweet.full_text.replace(/\s+/g, ' ').trim(),
                     author: `@${tweet.user?.screen_name || handle}`,
                     likes: Number(tweet.favorite_count || 0) + Number(tweet.retweet_count || 0),
+                    publishedAt: tweet.created_at,
                     url: tweet.id_str ? `https://x.com/${tweet.user?.screen_name || handle}/status/${tweet.id_str}` : `https://x.com/${handle}`
                   });
                 }
@@ -212,7 +220,8 @@ export async function scrapeRemainingPlatformsWithPlaywright({ browser } = {}) {
             body: t.text,
             url: t.url,
             author: t.author,
-            metrics: t.likes || 220,
+            metrics: t.likes || 0,
+            publishedAt: t.publishedAt,
             digimindQuery: `site:x.com "${ent.shortQ}"`
           });
         }
@@ -228,7 +237,8 @@ export async function scrapeRemainingPlatformsWithPlaywright({ browser } = {}) {
           body: item.body,
           url: item.url || `https://x.com/${ent.xHandle}`,
           author: `@${ent.xHandle}`,
-          metrics: 280,
+          metrics: 0,
+          publishedAt: item.publishedAt,
           digimindQuery: `site:x.com "${ent.shortQ}"`
         });
       }
@@ -244,12 +254,15 @@ export async function scrapeRemainingPlatformsWithPlaywright({ browser } = {}) {
           document.querySelectorAll('a[href*="/p/"], a[href*="/reel/"]').forEach((a) => {
             const href = a.getAttribute('href') || '';
             const img = a.querySelector('img');
+            const timeEl = a.closest('article')?.querySelector('time') || document.querySelector('time[datetime]');
+            const dt = timeEl ? (timeEl.getAttribute('datetime') || timeEl.textContent.trim()) : '';
             const caption = (img && img.getAttribute('alt')) || a.textContent || '';
-            if (caption && caption.trim().length > 15) {
+            if (caption && caption.trim().length > 15 && dt) {
               out.push({
                 text: caption.replace(/\s+/g, ' ').trim(),
                 url: href.startsWith('http') ? href : `https://www.instagram.com${href}`,
-                author: `@${handle}`
+                author: `@${handle}`,
+                publishedAt: dt
               });
             }
           });
@@ -265,7 +278,8 @@ export async function scrapeRemainingPlatformsWithPlaywright({ browser } = {}) {
             body: p.text,
             url: p.url,
             author: p.author,
-            metrics: 640,
+            metrics: 0,
+            publishedAt: p.publishedAt,
             digimindQuery: `site:instagram.com "${ent.shortQ}"`
           });
         }
@@ -281,13 +295,14 @@ export async function scrapeRemainingPlatformsWithPlaywright({ browser } = {}) {
           body: item.body,
           url: item.url || `https://www.instagram.com/${ent.igHandle}/`,
           author: `@${ent.igHandle}`,
-          metrics: 520,
+          metrics: 0,
+          publishedAt: item.publishedAt,
           digimindQuery: `site:instagram.com "${ent.shortQ}"`
         });
       }
 
       // =========================================================================
-      // 4. TIKTOK (__UNIVERSAL_DATA_FOR_REHYDRATION__ JSON + Site Index)
+      // 4. TIKTOK (__UNIVERSAL_DATA_FOR_REHYDRATION__ JSON with createTime + Site Index)
       // =========================================================================
       try {
         const ttUrl = `https://www.tiktok.com/@${ent.ttHandle}`;
@@ -298,28 +313,27 @@ export async function scrapeRemainingPlatformsWithPlaywright({ browser } = {}) {
           if (scriptEl) {
             try {
               const data = JSON.parse(scriptEl.textContent);
-              const rawStr = JSON.stringify(data);
-              const descMatches = rawStr.match(/"desc":"([^"]{20,260})"/g) || [];
-              descMatches.slice(0, 8).forEach((m) => {
-                const desc = m.replace(/^"desc":"/, '').replace(/"$/, '');
-                out.push({
-                  text: desc,
-                  url: `https://www.tiktok.com/@${handle}`,
-                  author: `@${handle}`
-                });
-              });
+              function walkTikTok(obj) {
+                if (!obj || typeof obj !== 'object') return;
+                if (typeof obj.desc === 'string' && obj.desc.length > 15 && obj.createTime) {
+                  const createSec = Number(obj.createTime);
+                  if (createSec > 1000000000) {
+                    const id = obj.id || '';
+                    out.push({
+                      text: obj.desc.replace(/\s+/g, ' ').trim(),
+                      url: id ? `https://www.tiktok.com/@${handle}/video/${id}` : `https://www.tiktok.com/@${handle}`,
+                      author: `@${handle}`,
+                      publishedAt: createSec * 1000
+                    });
+                  }
+                }
+                for (const k of Object.keys(obj)) {
+                  walkTikTok(obj[k]);
+                }
+              }
+              walkTikTok(data);
             } catch {}
           }
-          document.querySelectorAll('[data-e2e="user-post-item-desc"], [class*="DivDesContainer"]').forEach((el) => {
-            const txt = el.innerText ? el.innerText.replace(/\s+/g, ' ').trim() : '';
-            if (txt.length > 15) {
-              out.push({
-                text: txt,
-                url: `https://www.tiktok.com/@${handle}`,
-                author: `@${handle}`
-              });
-            }
-          });
           return out.slice(0, 8);
         }, ent.ttHandle);
 
@@ -332,7 +346,8 @@ export async function scrapeRemainingPlatformsWithPlaywright({ browser } = {}) {
             body: v.text,
             url: v.url,
             author: v.author,
-            metrics: 1400,
+            metrics: 0,
+            publishedAt: v.publishedAt,
             digimindQuery: `site:tiktok.com "${ent.shortQ}"`
           });
         }
@@ -348,13 +363,14 @@ export async function scrapeRemainingPlatformsWithPlaywright({ browser } = {}) {
           body: item.body,
           url: item.url || `https://www.tiktok.com/@${ent.ttHandle}`,
           author: `@${ent.ttHandle}`,
-          metrics: 980,
+          metrics: 0,
+          publishedAt: item.publishedAt,
           digimindQuery: `site:tiktok.com "${ent.shortQ}"`
         });
       }
 
       // =========================================================================
-      // 5. REDDIT (old.reddit.com Unauthenticated Search DOM Extraction)
+      // 5. REDDIT (old.reddit.com Unauthenticated Search DOM Extraction with <time datetime>)
       // =========================================================================
       try {
         const rdUrl = `https://old.reddit.com/search?q=${encodeURIComponent(ent.shortQ)}&sort=new&t=month`;
@@ -366,17 +382,21 @@ export async function scrapeRemainingPlatformsWithPlaywright({ browser } = {}) {
             const bodyEl = row.querySelector('.search-result-body');
             const authorEl = row.querySelector('.search-author a');
             const pointsEl = row.querySelector('.search-score');
-            if (!titleEl) return;
+            const timeEl = row.querySelector('.search-time time, time');
+            if (!titleEl || !timeEl) return;
+            const dt = timeEl.getAttribute('datetime') || timeEl.getAttribute('title') || timeEl.textContent.trim();
+            if (!dt) return;
             const title = titleEl.textContent.trim();
             const body = bodyEl ? bodyEl.textContent.replace(/\s+/g, ' ').trim() : '';
             const href = titleEl.getAttribute('href') || '';
-            const pts = pointsEl ? (parseInt(pointsEl.textContent.replace(/\D+/g, ''), 10) || 15) : 15;
+            const pts = pointsEl ? (parseInt(pointsEl.textContent.replace(/\D+/g, ''), 10) || 0) : 0;
             out.push({
               title,
               body,
               url: href.startsWith('http') ? href : `https://www.reddit.com${href}`,
               author: authorEl ? `u/${authorEl.textContent.trim()}` : 'u/reddit_traveler',
-              metrics: pts
+              metrics: pts,
+              publishedAt: dt
             });
           });
           return out.slice(0, 10);
@@ -392,13 +412,14 @@ export async function scrapeRemainingPlatformsWithPlaywright({ browser } = {}) {
             url: r.url,
             author: r.author,
             metrics: r.metrics,
+            publishedAt: r.publishedAt,
             digimindQuery: `"${ent.shortQ}"`
           });
         }
       } catch {}
 
       // =========================================================================
-      // 6. YOUTUBE (Playwright window.ytInitialData Video Search Extraction)
+      // 6. YOUTUBE (Playwright window.ytInitialData Video Search Extraction with publishedTimeText)
       // =========================================================================
       try {
         const ytUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(ent.shortQ)}&sp=CAI%253D`;
@@ -415,15 +436,17 @@ export async function scrapeRemainingPlatformsWithPlaywright({ browser } = {}) {
               const title = v.title?.runs?.map((r) => r.text).join('') || '';
               const desc = v.detailedMetadataSnippets?.[0]?.snippetText?.runs?.map((r) => r.text).join('') || '';
               const channel = v.ownerText?.runs?.[0]?.text || 'YouTube Creator';
-              const viewsText = v.viewCountText?.simpleText || '1,500 views';
-              const views = parseInt(viewsText.replace(/\D+/g, ''), 10) || 1500;
-              if (title) {
+              const viewsText = v.viewCountText?.simpleText || '0 views';
+              const views = parseInt(viewsText.replace(/\D+/g, ''), 10) || 0;
+              const pubTime = v.publishedTimeText?.simpleText || '';
+              if (title && pubTime) {
                 out.push({
                   title,
                   body: desc,
                   url: `https://www.youtube.com/watch?v=${v.videoId}`,
                   author: channel,
-                  metrics: views
+                  metrics: views,
+                  publishedAt: pubTime
                 });
               }
             }
@@ -441,22 +464,26 @@ export async function scrapeRemainingPlatformsWithPlaywright({ browser } = {}) {
             url: y.url,
             author: y.author,
             metrics: y.metrics,
+            publishedAt: y.publishedAt,
             digimindQuery: `site:youtube.com "${ent.shortQ}"`
           });
         }
       } catch {}
 
       // =========================================================================
-      // 7. LINKEDIN (Guest Organization Feed + Search-Indexed Posts)
+      // 7. LINKEDIN (Guest Organization Feed with <time> + Search-Indexed Posts)
       // =========================================================================
       try {
         await page.goto(ent.liCompany, { waitUntil: 'domcontentloaded', timeout: 11000 });
         const liUpdates = await page.evaluate((compUrl) => {
           const out = [];
-          document.querySelectorAll('.attributed-text-segment-list__content, article.main-feed-activity-card p, .commentary').forEach((el) => {
-            const txt = el.innerText ? el.innerText.replace(/\s+/g, ' ').trim() : '';
-            if (txt.length > 30) {
-              out.push({ text: txt.slice(0, 360), url: compUrl });
+          document.querySelectorAll('article.main-feed-activity-card, .feed-shared-update-v2').forEach((card) => {
+            const textEl = card.querySelector('.attributed-text-segment-list__content, p, .commentary');
+            const timeEl = card.querySelector('time');
+            const txt = textEl && textEl.innerText ? textEl.innerText.replace(/\s+/g, ' ').trim() : '';
+            const dt = timeEl ? (timeEl.getAttribute('datetime') || timeEl.innerText.trim()) : '';
+            if (txt.length > 30 && dt) {
+              out.push({ text: txt.slice(0, 360), url: compUrl, publishedAt: dt });
             }
           });
           return out.slice(0, 8);
@@ -471,7 +498,8 @@ export async function scrapeRemainingPlatformsWithPlaywright({ browser } = {}) {
             body: u.text,
             url: u.url,
             author: ent.entityLabel,
-            metrics: 310,
+            metrics: 0,
+            publishedAt: u.publishedAt,
             digimindQuery: `site:linkedin.com "${ent.shortQ}"`
           });
         }
@@ -487,7 +515,8 @@ export async function scrapeRemainingPlatformsWithPlaywright({ browser } = {}) {
           body: item.body,
           url: item.url || ent.liCompany,
           author: ent.entityLabel,
-          metrics: 290,
+          metrics: 0,
+          publishedAt: item.publishedAt,
           digimindQuery: `site:linkedin.com "${ent.shortQ}"`
         });
       }

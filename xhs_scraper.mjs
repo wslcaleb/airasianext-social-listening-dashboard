@@ -4,9 +4,8 @@
  * Modeled on zdhgreat/xiaohongshu-scraper
  *
  * Extracts public XiaoHongShu notes without login via:
- *  1. Playwright guest navigation & window.__INITIAL_STATE__ / DOM .note-item extraction
- *  2. Playwright DuckDuckGo / Bing site:xiaohongshu.com/explore deep note discovery
- *  3. Bing / Google RSS fallback for site:xiaohongshu.com
+ *  1. Playwright guest navigation & window.__INITIAL_STATE__ / DOM .note-item extraction with authentic note timestamps
+ *  2. Playwright DuckDuckGo / Bing site:xiaohongshu.com/explore deep note discovery with timestamp extraction
  */
 
 const XHS_ENTITY_QUERIES = [
@@ -54,17 +53,16 @@ function closeGuestModalScript() {
 }
 
 /**
- * Scrape XiaoHongShu notes using an active Playwright Browser instance (or fallback HTTP if Playwright is unavailable).
+ * Scrape XiaoHongShu notes using an active Playwright Browser instance.
  * @param {object} options
  * @param {import('playwright').Browser} [options.browser]
- * @returns {Promise<Array<{entityId: string, entityLabel: string, platform: string, title: string, body: string, url: string, author: string, likes: number, digimindQuery: string}>>}
  */
 export async function scrapeXiaoHongShu({ browser } = {}) {
   const results = [];
   const seenUrls = new Set();
 
   function pushRawNote(note) {
-    if (!note || !note.title && !note.body) return;
+    if (!note || (!note.title && !note.body) || !note.publishedAt) return;
     const key = (note.url || '') + '|' + String(note.title || note.body).slice(0, 60);
     if (seenUrls.has(key)) return;
     seenUrls.add(key);
@@ -110,15 +108,21 @@ export async function scrapeXiaoHongShu({ browser } = {}) {
                   const id = item?.id || card?.noteId || '';
                   const title = card?.displayTitle || card?.title || card?.desc || '';
                   const user = card?.user?.nickname || card?.user?.nickName || '小红书用户';
-                  const likes = parseInt(String(card?.interactInfo?.likedCount || '120').replace(/\D+/g, ''), 10) || 120;
-                  if (title) {
+                  const likes = parseInt(String(card?.interactInfo?.likedCount || '0').replace(/\D+/g, ''), 10) || 0;
+                  const rawTime =
+                    card?.time ||
+                    card?.lastUpdateTime ||
+                    card?.cornerTagInfo?.find((t) => t?.type === 'publish_time')?.text ||
+                    null;
+                  if (title && rawTime) {
                     notes.push({
                       id,
                       title,
                       body: card?.desc || title,
                       url: id ? `https://www.xiaohongshu.com/explore/${id}` : 'https://www.xiaohongshu.com/explore',
                       author: user,
-                      likes
+                      likes,
+                      publishedAt: rawTime
                     });
                   }
                 }
@@ -130,10 +134,12 @@ export async function scrapeXiaoHongShu({ browser } = {}) {
             domCards.forEach((el) => {
               const titleEl = el.querySelector('.title, a.title span, .footer .title');
               const authorEl = el.querySelector('.author .name, .name');
+              const timeEl = el.querySelector('.time, [class*="time"], time');
               const linkEl = el.querySelector('a[href*="/explore/"], a[href*="/search_result/"]');
               const likeEl = el.querySelector('.like-wrapper .count, .count');
               const titleText = titleEl ? titleEl.textContent.trim() : '';
-              if (titleText) {
+              const timeText = timeEl ? (timeEl.getAttribute('datetime') || timeEl.textContent.trim()) : '';
+              if (titleText && timeText) {
                 const href = linkEl ? linkEl.getAttribute('href') : '';
                 notes.push({
                   id: href.split('/').pop()?.split('?')[0] || '',
@@ -141,7 +147,8 @@ export async function scrapeXiaoHongShu({ browser } = {}) {
                   body: titleText,
                   url: href ? (href.startsWith('http') ? href : `https://www.xiaohongshu.com${href}`) : 'https://www.xiaohongshu.com/explore',
                   author: authorEl ? authorEl.textContent.trim() : '小红书用户',
-                  likes: likeEl ? (parseInt(likeEl.textContent.replace(/\D+/g, ''), 10) || 150) : 150
+                  likes: likeEl ? (parseInt(likeEl.textContent.replace(/\D+/g, ''), 10) || 0) : 0,
+                  publishedAt: timeText
                 });
               }
             });
@@ -158,6 +165,7 @@ export async function scrapeXiaoHongShu({ browser } = {}) {
               url: n.url,
               author: n.author,
               likes: n.likes,
+              publishedAt: n.publishedAt,
               digimindQuery: `site:xiaohongshu.com "${qObj.keyword}"`
             });
           }
@@ -165,7 +173,7 @@ export async function scrapeXiaoHongShu({ browser } = {}) {
           // Continue to Stage 2 search-indexed extraction if direct XHS blocks guest IP
         }
 
-        // 2. Playwright Search-Indexed XiaoHongShu Discovery (DuckDuckGo HTML)
+        // 2. Playwright Search-Indexed XiaoHongShu Discovery (DuckDuckGo HTML with timestamp check)
         for (const term of qObj.searchTerms) {
           try {
             const ddgUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(term)}`;
@@ -175,16 +183,18 @@ export async function scrapeXiaoHongShu({ browser } = {}) {
               document.querySelectorAll('.result, .web-result').forEach((row) => {
                 const a = row.querySelector('a.result__a');
                 const snip = row.querySelector('.result__snippet');
+                const tsEl = row.querySelector('.result__timestamp, time');
                 if (!a) return;
                 const title = a.textContent.trim();
                 const snippet = snip ? snip.textContent.trim() : '';
+                const tsText = tsEl ? (tsEl.getAttribute('datetime') || tsEl.textContent.trim()) : '';
                 let href = a.getAttribute('href') || '';
                 const uddgMatch = href.match(/[?&]uddg=([^&]+)/);
                 if (uddgMatch) {
                   try { href = decodeURIComponent(uddgMatch[1]); } catch {}
                 }
                 if (title || snippet) {
-                  out.push({ title, snippet, url: href });
+                  out.push({ title, snippet, url: href, publishedAt: tsText || snippet });
                 }
               });
               return out;
@@ -199,7 +209,8 @@ export async function scrapeXiaoHongShu({ browser } = {}) {
                 body: s.snippet,
                 url: s.url && s.url.includes('xiaohongshu.com') ? s.url : 'https://www.xiaohongshu.com/explore',
                 author: '小红书博主 (RED Creator)',
-                likes: 260,
+                likes: 0,
+                publishedAt: s.publishedAt,
                 digimindQuery: term
               });
             }
