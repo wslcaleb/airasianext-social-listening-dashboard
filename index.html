@@ -1054,7 +1054,7 @@
               '<p class="text-xs sm:text-sm text-slate-100 leading-relaxed bg-slate-950/60 p-3 rounded-xl border border-slate-800">' + highlightWords(textToShow, post.keywords) + '</p>' +
             '</div>' +
             '<div class="pt-2 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs">' +
-              '<span class="text-emerald-300 font-semibold">✔ Onclusive Digimind • Category: Mentions (' + (post.mentionType || 'Post / Comment') + ')</span>' +
+              '<span class="text-emerald-300 font-semibold">✔ Category: Mentions (' + (post.mentionType || 'Post / Comment') + ')</span>' +
               '<div class="flex items-center gap-2">' +
                 (post.externalUrl ? '<a href="' + post.externalUrl + '" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-emerald-500/40 font-extrabold cursor-pointer">🔗 Live URL ↗</a>' : '') +
                 '<button type="button" data-open-post="' + post.id + '" class="px-3 py-1.5 rounded-xl bg-[#E11D2B] hover:bg-rose-600 text-white font-extrabold cursor-pointer shadow">View Original Mention</button>' +
@@ -1531,7 +1531,7 @@
                     '<div>' +
                       '<div class="flex items-center gap-2">' +
                         '<span class="px-2 py-0.5 rounded bg-[#E11D2B] text-white text-xs font-extrabold uppercase">Mentions</span>' +
-                        '<h3 class="text-base font-extrabold text-white">Onclusive Digimind Mentions Drawer • ' + (state.streamScope === 'all' ? 'All 5 Group Entities' : activeEntityMeta.name) + ' (' + state.streamPillar + ')</h3>' +
+                        '<h3 class="text-base font-extrabold text-white">Live Social Mentions Drawer • ' + (state.streamScope === 'all' ? 'All 5 Group Entities' : activeEntityMeta.name) + ' (' + state.streamPillar + ')</h3>' +
                       '</div>' +
                       '<p class="text-xs text-slate-400 mt-0.5">Showing all ' + filteredPosts.length + ' crawled mentions (posts, comments, replies &amp; threads) in ' + activeWindowText + '</p>' +
                     '</div>' +
